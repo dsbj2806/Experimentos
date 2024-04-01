@@ -1,0 +1,321 @@
+---
+title: "Resumen 1 Experimentos"
+author: "Daniel Sibaja Salazar"
+date: "2024-03-12"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: journal
+  pdf_document:
+    toc: yes
+---
+
+# Introducción al tema
+
+## Diseño de un experimento
+
+-   El experimentador hace cambio deliberados en las variables de entrada de un proceso o sistema. Con el fin de identificar las razones de los cambios que pueden observarse en la variable respuesta.
+
+-   También el experimentador está interesado en el efecto de algún proceso o intervención, llamado tratamiento sobre la respuesta de los objetos u unidades experimentales.
+
+-   Cuando se pueden controlar los factores se pueden llegar a conclusiones de causa-efecto, el cambio de tratamiento es causante del cambio en la respuesta.
+
+-   Cuando no se pueden controlar los factores se puede llegar a conclusiones de correlación.
+
+### Ejemplos
+
+**Situación en la que el cambio de las condiciones sea la causa del cambio en la salida:** Un experimento donde se estudia cómo diferentes niveles de luz afectan el crecimiento de las plantas. Al aumentar la cantidad de luz para un grupo de plantas mientras otro grupo permanece bajo condiciones normales, se observa que las plantas con más luz crecen significativamente más rápido. En este caso, el cambio en la cantidad de luz es la causa del cambio en el crecimiento de las plantas.
+
+**Situación en la que no haya certeza de que las condiciones del factor sean la causa del cambio en la salida:** Imagina un experimento donde se estudia el efecto de la música en el rendimiento académico de los estudiantes. Un grupo de estudiantes escucha música mientras realiza una prueba, mientras que otro grupo realiza la misma prueba en silencio. Los resultados muestran que el grupo que escuchó música obtuvo mejores resultados. Sin embargo, no podemos estar seguros de que la música sea la causa directa de esta mejora, ya que otros factores como el estado de ánimo de los estudiantes o la motivación podrían haber influido en los resultados. En esta situación, aunque la salida (rendimiento académico) está asociada con las condiciones del factor (escuchar música), no hay certeza de que estas últimas sean la causa del cambio en la salida.
+
+## Conceptos básicos
+
+**Variable respuesta:** Variable que se estudia en un experimento y que se busca verificar si cambia al modificar las condiciones controlables.
+
+**Tratamiento:** Cada una de las condiciones controlables que se modifican en un experimento.
+
+**Factor:** Variable que se controla en un experimento y que puede tener diferentes niveles.
+
+**Nivel de un factor:** Cada una de las posibilidades que se estudian de un factor.
+
+**Efecto del tratamiento:** Diferencia entre el promedio de la variable respuesta en un tratamiento específico y el promedio general de la variable respuesta. Si el tratamiento no tiene efecto sobre la respuesta el efecto es 0
+
+**Efecto positivo del tratamiento:** El promedio de la variable respuesta en un tratamiento específico es mayor que el promedio general.
+
+**Efecto negativo del tratamiento:** El promedio de la variable respuesta en un tratamiento específico es menor que el promedio general.
+
+**Promedio general:** Promedio de la variable respuesta considerando todos los datos de todos los tratamientos.
+
+# Factores en experimentos
+
+Es la varible una estudiar pero no siempre tengo control total de la misma. Pueden ser de diseño o no de diseño.
+
+Los no de diseño y los medibles no controlables disminuyen la variabilidad.
+
+Se pueden:
+
+-   Fijar: Ya no es una varible en sí. Todos los elementos son iguales.
+
+-   Controlar: dependdiendo del objetivo del estudio. Como los factores de diseño
+
+-   Libre: Puede quedar como factor de ruido.
+
+    -   Si no las puedo medir pueden meter variabilidad.
+
+## Elección de os niveles de un factor y rangos.
+
+-   Factores con pocos niveles son preferibles.
+-   Las UE deben de ser lo más parecidas posibles.
+    -   Si hay diferencias en las unidades es mejor otras variables medibles no de diseño para menor variabilidad
+-   Si hay un nivel de control se refiere a que no e hace nada o se da el tratamiento clásico
+
+# Pruebas de hipótesis.
+
+## H0 o hipóteis nula.
+
+$$
+\mu_1=\mu_2=\mu_3=\mu_4
+$$
+
+Todos los promedios de los tratamientos son iguales
+
+$$
+\tau_1=\tau_2=\tau_3=\tau_4=0
+$$
+
+Los efectos de los tratamientos son todos iguales a 0.
+
+## H1 o hipótesis alternativa.
+
+Al menos un par de tratamientos producen medias diferentes.
+
+El factor tiene un efecto sobre la media global.
+
+# Erroes.
+
+## Tipo I
+
+Cuando se rechaza una hippótesis siendo verdaderaa
+
+## Tipo II
+
+Cuando no se rechaza siendo falsa
+
+**Nota:** No conviene comparar de dos en dos las medias porque disparo el error tipo I
+
+# Error experimental
+
+Las diferencias entre unidades que están bajo un mimo tratamiento se atribuye o bien a un *error experimental aleatorio* o a *factores de ruido*
+
+El mismo es esperado incluso tomando en cuenta todos los factores que influyen en la respuesta
+
+# El modelo
+
+Para la media condicional:
+
+$$
+\mu_j=\mu+\tau_j
+$$
+
+Para un observación
+
+$$
+y_{ij}=\mu+\tau_j+\epsilon_i
+$$
+
+En este caso entonces:
+
+-   El efecto de un tratamiento es lo que diferencia a la media del tratamiento de la media general
+
+-   El error es lo que diferencia a la oservación de la media del tratamiento.
+
+## Supuestos del modelo
+
+Casi los mismos de regresión
+
+-   La distribución condicional es normal. En un tratamiento específico.
+
+-   Igualdad de tratamientos.
+
+-   Independencia
+
+-   Homocedasticidad
+
+Entonces $y_{ij}$ debería seguir un distriución normal con media $\mu_j$ y varianza $\sigma^2$
+
+Y $\epsilon_{ij}$ es normal con media 0 y varianza $\sigma^2$
+
+La vaarinza no tiene subindice por la homocedasticidad.
+
+# Parametrizaciones de los modelos
+
+Vamos a meter variables auxiliares.
+
+# Suma nula
+
+En este caso los coeficientes son 1 para el tratamiento de interés, 0 para los demás y -1 para el último.
+
+$$
+E[Y|trat_j]=\mu_j=\mu+\sum^{k-1}_{j=1}\tau_jC_j
+$$ Entonces i quiero tengo interés en el segundo tratamiento tengo que
+
+(1,0,1,0) es el vector, tomando en cuenta el intercepto
+
+# Tratamiento de referencia
+
+Tengo que
+
+$$
+\mu_j=\mu_1+\sum^{k-1}_{j=2}\delta_jD_j
+$$ con
+
+$$
+\delta_j=\mu_j-\mu_1
+$$ Tomo un 1 para el tratamiento de referencia como el intercepto y para las demás un 1 si es el de interés o un 0 si no
+
+Por ejemplo:
+
+-   si me interesa el tratamiento 2 tengo que (1,1,0,0)
+
+-   Si me interesa el tratamiento 1 tengo que (1,0,0,0)
+
+# Ejercicio
+
+-   (1,0,1,0)
+
+-   (1,1,0) ¿Se pone intercepto?
+
+# Análisis de varianza
+
+¿Cómo hacemos para para comprobar las hipótesis cuando queremos comparar más de dos promedios?
+
+Con un *ANDEVA* que es una técnica estadística que nos permite justamente eso.
+
+En el caso más sencillo hay dos fuentes de varianción
+
+-   **Entre** tratamientos: Cuadrado Medio de tratanmientos CMTrat
+-   **Dentro** de los tratamientos: Cuadrado medio residual CMRes
+
+## Suma de cuadrados total
+
+$$SCTot=\sum^n_{i=1}(y_i-\bar y )^2$$
+O bien así=
+
+$$
+SCTot=SCTrat+SCRes
+$$
+
+
+## CMTrat:
+
+Mide la varianción que hay entre todos los promedios de los diferentes tratamientos.
+
+$$
+CMTrat= \frac{\sum r_j(\bar y_j-\bar y)}{k-1}=\frac{SCTrat}{k-1}
+$$
+
+## CMRes
+
+Una buena estimación de la variabilidad dentro de los tratamientos es el promedio ponderado de las varianzas de cada tratamiento.
+
+Sirve para resumir todas la varianzas de los tratamientos en una sola medida
+
+**Nota:** Si el experimento no es balaceado hay que ponderar.
+
+$$
+CMRes=\frac{\sum(r_j-1)s^2_j}{n-k} = \frac{SCRes}{n-k}
+$$
+
+Si es balanceado se puede resumir a: 
+
+$$
+\frac{\sum^k_{j=1}s^2_j}{k}
+$$
+
+
+# Valores esperados de los cuadrados medios
+
+$$
+E(CMRes)=\sigma^2
+$$
+
+$$
+E(CMtrat)=\sigma^2+\frac{\sum^k_{j=1}r_j\tau^2_j}{k-1}
+$$
+
+Bajo la hipótesis nula cierta:
+
+Quiere decir que los $\tau_j=0$ por lo tanto $E(CMtrat)=\sigma^2$ 
+
+Entocnes para probar la hipótesis de que los efectos de los tratamientos son nulos hay que probar que 
+
+$$
+E(CMRes)=E(CMTrat)
+$$
+
+# Distribución de las sumas de cuadrados
+
+* Sean n observaciones $y_i$ independientes provenientes de una misma disstribución normal con media $\mu$ y varianza $\sigma^2$ 
+
+- La variable $ \sum^n_{i=1}\frac{(y_i-y)^2}{\sigma^2} $ sigue una distribución Chi cuadrado con n-1 grados de libertad
+  
+* Por lo tanto: $SCTrat/\sigma^2$ tiene dist chi con k-1 grados de libertad y $SCRes/\sigma^2$ sigue una distribución chi con n-k grados de libertad
+
+
+## Teorema de Cochran 
+
+Los términos $SC_i/\sigma^2$ son variables chi cuadrado independientes. 
+
+## Distribución del cociente
+
+Hay que recordar que si se tienen dos variables chi cuadrado independientes, el cociente de ellas entre sus respectivos grados de libertad sigue una distribución F 
+
+
+Tomando esto en cuenta entonces:
+
+- Si la hipótesis nula es verdadera es de esperarse que tanto el CMTrat como el CMRes tengan magnitudes similares.
+  - Incluso CMTrat<CMRes
+- Si H0 es falsa se espera que CMTrat>CMRes
+- Por lo tanto se puede usar el cociente de distribución F para hacer la prueba de hipótesis ya que si H0 es verdadera este valor debe de estar cerca de 1 
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
