@@ -1,11 +1,11 @@
 ---
 title: "Resumen 1 Experimentos"
 author: "Daniel Sibaja Salazar"
-date: "2024-03-12"
 output:
   html_document:
     toc: yes
     toc_float: yes
+    css: "patas.css"
     theme: journal
   pdf_document:
     toc: yes
@@ -258,7 +258,7 @@ $$
 
 * Sean n observaciones $y_i$ independientes provenientes de una misma disstribución normal con media $\mu$ y varianza $\sigma^2$ 
 
-- La variable $ \sum^n_{i=1}\frac{(y_i-y)^2}{\sigma^2} $ sigue una distribución Chi cuadrado con n-1 grados de libertad
+- La variable $\sum^n_{i=1}\frac{(y_i-y)^2}{\sigma^2}$ sigue una distribución Chi cuadrado con n-1 grados de libertad
   
 * Por lo tanto: $SCTrat/\sigma^2$ tiene dist chi con k-1 grados de libertad y $SCRes/\sigma^2$ sigue una distribución chi con n-k grados de libertad
 
