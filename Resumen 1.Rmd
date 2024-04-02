@@ -5,8 +5,7 @@ output:
   html_document:
     toc: yes
     toc_float: yes
-    css: "patas.css"
-    theme: journal
+    css: "tema1.css"
   pdf_document:
     toc: yes
 ---
@@ -92,7 +91,7 @@ Al menos un par de tratamientos producen medias diferentes.
 
 El factor tiene un efecto sobre la media global.
 
-# Erroes.
+# Errores
 
 ## Tipo I
 
@@ -180,11 +179,6 @@ Por ejemplo:
 
 -   Si me interesa el tratamiento 1 tengo que (1,0,0,0)
 
-# Ejercicio
-
--   (1,0,1,0)
-
--   (1,1,0) ¿Se pone intercepto?
 
 # Análisis de varianza
 
