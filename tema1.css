@@ -40,7 +40,7 @@ h1, h2 {
 #TOC {
     background-color: #E4D9FF; /* Cambia el color de fondo */
     padding: 2px; /* Añade espacio alrededor del índice */
-    border-radius: 10px; /* Hace que los bordes sean más redondeados */
+    border-radius: 30px; /* Hace que los bordes sean más redondeados */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Agrega una sombra suave */
 
 }
