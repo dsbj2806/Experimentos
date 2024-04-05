@@ -5,6 +5,7 @@ output:
   html_document:
     toc: yes
     toc_float: yes
+    toc-title: "índice"
     css: "tema1.css"
   pdf_document:
     toc: yes
