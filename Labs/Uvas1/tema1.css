@@ -1,0 +1,70 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #FAFAFF;
+    margin: 0;
+    padding: 0;
+}
+
+p{
+
+margin: 0;
+text-justify: distribute;
+color: #30343F;
+}
+
+
+/* Estilo para cambiar el color del texto dentro de los elementos <li> */
+li {
+    color: #30343F; /* Cambia el color del texto a azul */
+}
+
+
+
+
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #F7F7FF;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #273469;
+}
+
+
+/* Estilo del índice de contenido */
+#TOC {
+    background-color: #E4D9FF; /* Cambia el color de fondo */
+    padding: 2px; /* Añade espacio alrededor del índice */
+    border-radius: 30px; /* Hace que los bordes sean más redondeados */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Agrega una sombra suave */
+
+}
+
+/* Estilo de los elementos del índice */
+.tocify-item {
+    font-size: 16px; /* Cambia el tamaño de la fuente */
+    color: #30343F; /* Cambia el color del texto */
+    margin-left: 10px; /* Añade margen a la izquierda para la indentación */
+}
+
+/* Estilo de los elementos activos del índice */
+.tocify-item.active {
+    font-weight: bold; /* Hace que el elemento activo sea negrita */
+    color: #30343F; /* Cambia el color del texto del elemento activo */
+    background-color: #E4D9FF
+}
+
+/* Estilo de los elementos secundarios del índice */
+.tocify-subheader {
+    margin-left: 20px; /* Añade más margen a la izquierda para la indentación de los elementos secundarios */
+}
+
+/* Estilo de los elementos secundarios activos del índice */
+.tocify-subheader .tocify-item.active {
+    font-weight: normal; /* Ajusta el peso de la fuente para los elementos secundarios activos */
+}

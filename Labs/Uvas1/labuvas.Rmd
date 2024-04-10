@@ -1,0 +1,183 @@
+---
+title: "LabUvas"
+author: "Daniel Sibaja Salazar"
+output:
+  pdf_document:
+    toc: true
+  html_document:
+    toc: true
+    toc_float: true
+    toc-title: índice
+    css: tema1.css
+---
+# Preparación 
+
+## Cargar el archvio 
+```{r}
+base=read.csv("uvas.csv")
+base$localidad=factor(base$localidad)
+```
+
+## Características del experimento
+
+No es necesario en este caso, debido a que solo interesa un factor, la localidad.
+
+# Hipótesis básica
+
+## Establezca la hipótesis básica para verificar que en efecto las tres localidades no producen el mismo promedio de dulzor.
+
+H0: mu1=mu2=m3
+H0: t1=t2=t3=0
+
+H1: al menos un par de mus es distinto
+
+## Haga un boxplot que permita de una forma descriptiva apoyar o contradecir esta hipótesis.
+
+```{r}
+boxplot(base$brix~base$localidad)
+```
+Parece que el promedio de Garita es un poco mayor al de Guácima o San Vito, sin embargo nada luce muy distinto. 
+
+## Obtenga las medias de cada tratamiento.
+
+```{r}
+m=tapply(base$brix,base$localidad,mean);m
+```
+
+## Ponga a prueba la hipótesis
+
+Automática
+
+```{r}
+mod=lm(base$brix~base$localidad)
+anova(mod)
+```
+Hay suficiente evidencia estadística para rechazar la hipótesis nula, aparentemente hay un par de medias distinto. 
+
+Paso a paso
+
+```{r}
+mg=mean(base$brix);mg
+r=table(base$localidad)
+sctrat=sum(r*(m-mg)^2)
+cmtrat=sctrat/2;cmtrat
+v=tapply(base$brix,base$localidad,var);v
+scres=sum((r-1)*v);scres
+cmres=scres/(sum(r)-3);cmres
+
+f=cmtrat/cmres;f
+
+p=pf(f,3-1,100-3,lower.tail = F);p
+
+```
+El resultado es igual. 
+
+
+# Comparaciones de los promedios
+
+## Dado que el objetivo es comparar todas las localidades entre sí, se trata de un problema de comparación de todos los pares de promedios. Escriba todas las hipótesis que se deben probar.
+
+1. H0: mu1=mu2
+2. H0: mu1=mu3
+3. H0: mu2=mu3
+
+
+## Verifique que no son ortogonales
+
+Tengo los siguientes vectores
+
+* (1,-1,0)
+* (1,0,-1)
+* (0,1,-1)
+
+```{r}
+v1= c(1,-1,0)
+v2= c(1,0,-1)
+v3= c(0,1,-1)
+
+crossprod(v1,v2)
+crossprod(v1,v3)
+crossprod(v2,v3)
+```
+
+No son ortogonales. 
+
+## Obtenga el cuadrado medio residual.
+
+```{r}
+v=tapply(base$brix,base$localidad,var)
+scres=sum((r-1)*v)
+cmres=scres/(sum(r)-3);cmres;anova(mod)[2,3]
+```
+## Obtenga los estadísticos de interés para realizar cada prueba, es decir, debec calcular yi−yj
+
+```{r}
+mu1=m[1]
+mu2=m[2]
+mu3=m[3]
+
+dif1=abs(mu1-mu2)
+dif2=abs(mu1-mu3)
+dif3=abs(mu2-mu3)
+```
+
+## Obtenga el error estándar del estadístico 
+
+```{r}
+ee1=sqrt(cmres*((1/r[1])+(1/r[2])));ee1
+ee2=sqrt(cmres*((1/r[1])+(1/r[3])));ee2
+ee3=sqrt(cmres*((1/r[2])+(1/r[3])));ee3
+```
+
+## Obtenga el valor estandarizado del estadístico dividiéndolo por su error estándar.
+
+
+```{r}
+est1=dif1/ee1
+est2=dif2/ee2
+est3=dif3/ee3
+```
+
+## Encuentre la probabilidad de obtener un valor igual o mayor al estadístico usando la distribución del rango estudentizado de Tukey.
+
+```{r}
+ptukey(est1*sqrt(2),3,97,lower.tail = F)
+ptukey(est2*sqrt(2),3,97,lower.tail = F)
+ptukey(est3*sqrt(2),3,97,lower.tail = F)
+```
+
+¿como evitar que diga el factor?
+
+## Obtenga estas probabilidades automáticamente usando la función TukeyHSD(mod)
+
+```{r}
+mod1=aov(base$brix~base$localidad)
+TukeyHSD(mod1)
+```
+
+## ¿Qué se concluye en términos de las hipótesis que se probaron?
+
+Hay suficiente evidencia estadística para rechazar la hipótesis nula de igualdad de medias en los pares Guacima-Garita y San Vito-Garita, no así en San vito-guacima. 
+
+¿Se puede decir que Garita es el que es distinto?(Como se ve en el gráfico)
+
+# Límites para las diferencias
+
+## Obtenga intervalos de confianza para la diferencia de las medias solo en los casos en que se encontró una diferencia significativa.
+
+```{r}
+dif1;dif2
+
+t=qt(1-0.05/(2*2),97);t
+
+ic1=c(dif1-t*ee1,dif1+t*ee1);ic1
+ic2=c(dif2-t*ee2,dif2+t*ee2);ic2
+
+```
+La diferencia de las medias de Garita y Guacima se espera que esté entre 0.06258823 y 1.63993809 
+
+
+La diferencia de las medias de Garita y San Vito se espera que esté entre 0.277654 y 1.692332 
+
+
+Con una confianza global del 95%. 
