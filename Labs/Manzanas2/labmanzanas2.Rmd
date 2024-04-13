@@ -1,0 +1,242 @@
+---
+title: "LabManzanas2"
+author: "Daniel Sibaja Salazar"
+date: "2024-04-12"
+output: html_document
+---
+# Preparación 
+
+## Cargue el archivo manzanas.Rdata
+
+```{r}
+options(digits = 4)
+load("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experimentos/Labs/Manzanas1/manzanas.Rdata")
+```
+
+# Pruebas de hipótesis.
+
+## Cambie al modelo de suma nula. Obtenga las estimaciones de los coeficientes, para esto debe usar la función lm.
+
+```{r}
+options(contrasts=c("contr.sum","contr.poly"))
+
+mod=lm(color~trat,data = base)
+coef=mod$coefficients;coef
+```
+
+## Verifique cuál es el tratamiento que está codificando con -1. Use contrasts(base$trat).
+
+```{r}
+contrasts(base$trat)
+```
+
+## Plantee las hipótesis necesarias para cumplir con los objetivos del problema.
+
+Hay tres hipótesis a tomar en cuenta.
+
+1) $\mu_1=\frac{\mu_2+\mu_3+\mu_4}{3}$
+
+2) $\mu_4=\frac{\mu_2+\mu_3}{2}$
+
+3) $\mu_2=\mu_3$
+
+## Explique por qué da lo mismo escribir estas hipótesis en términos de los efectos que en términos de los promedios de cada tratamiento.
+
+Da lo mismo porque decir que los promedios son iguales es lo mismo que decir que los efectos de los tratamientos son iguales, por la forma en la que se calculan, el promedio del tratamiento se calcula como la media general más el efecto del tratamiento, si los efectos de los tratamientos son iguales, entonces el promedio de los tratamientos también lo son. 
+
+## Defina los contrastes ortogonales (L1, L2 y L3) necesarios para probar las hipótesis.
+
+Hay que recordar que los contrastes lucen algo así. 
+
+$$
+L=c_1\mu_1+c_2\mu_2+c_3\mu_3+c_4\mu_4
+$$
+Para hacerlo debo de igualar las hipótesis a 0.
+
+1) $\mu_1-\frac{1}{3}(\mu_2+\mu_3+\mu_4)=0$
+
+2) $\mu_4-\frac{1}{2}(\mu_2+\mu_3)=0$
+
+3) $\mu_2-\mu_3=0$
+
+Entonces los contrastes quedarían así 
+
+1) $L_1=1\mu_1-\frac{1}{3}\mu_2-\frac{1}{3}\mu_3-\frac{1}{3}\mu_4$
+
+2) $L_2=1\mu_4-\frac{1}{2}\mu_2-\frac{1}{2}\mu_3$
+
+3) $L_3=1\mu_2-1\mu_3$
+
+## Verifique que los tres vectores (v1, v2 y v3) son ortogonales. Para esto debe usar los coeficientes originales.
+
+```{r}
+v1=c(1,-1/3,-1/3,-1/3)
+v2=c(0,-1/2,-1/2,1)
+v3=c(0,1,-1,0)
+
+crossprod(v1,v2)
+crossprod(v1,v3)
+crossprod(v2,v3)
+
+```
+
+## En el modelo con suma nula se tiene la restricción τ4 = −(τ1 + τ2 + τ3). Para que todo quede en términos de los 3 efectos que son estimados con este modelo, haga la sustitución de τ4 en L1.
+
+$$
+L_1=1\mu_1-\frac{1}{3}\mu_2-\frac{1}{3}\mu_3-\frac{1}{3}\mu_4
+$$
+Hay que tomar en cuenta que en suma nula tenemos varios cambios que hacer
+
+* $\mu_1=\mu+\tau_1$
+* $\mu_2=\mu+\tau_2$
+* $\mu_3=\mu+\tau_3$
+* $\mu_4=\mu-\tau_1-\tau_2-\tau_3$
+
+Entonces hay que hacer todas estas sustituciones. 
+
+$$
+L_1=1\mu+\tau_1-\frac{1}{3}\mu+\tau_2-\frac{1}{3}\mu+\tau_3-\frac{1}{3}\mu-\tau_1-\tau_2-\tau_3
+$$
+
+Y se puede simplificar y queda así
+
+$$
+L1=\frac{4\tau_1}{3}
+$$
+
+También hay que hacerlo en L2 y L3 
+
+*Hechos a mano*
+
+## Cree una matriz con los coeficientes de los contrastes. Recuerde que debe incluir el intercepto.
+
+```{r}
+h1=c(0,4/3,0,0)
+h2=c(0,1,3/2,3/2)
+h3=c(0,0,1,-1)
+
+mat=cbind(h1,h2,h3);mat
+```
+
+## Estime los contrastes.
+
+```{r}
+lt1=crossprod(h1,coef);lt1
+lt2=crossprod(h2,coef);lt2
+lt3=crossprod(h3,coef);lt3
+
+```
+
+## Verifique los resultados anteriores estimando el contraste basado en las medias estimadas.
+
+```{r}
+m=mean(base$color)
+med=tapply(base$color,base$trat,mean)
+
+med[1]-mean(med[2:4])
+mean(med[2:3])-med[4]
+med[2]-med[3]
+```
+
+## Encuentre el error estándar de cada contraste (ee1, ee2 y ee3)
+
+```{r}
+ee=sqrt(diag(t(mat)%*%vcov(mod)%*%mat));ee
+```
+
+## Encuentre el valor estandarizado del contraste haciendo: 
+```{r}
+est1=lt1/ee[1]
+est2=lt2/ee[2]
+est3=lt3/ee[3]
+
+est1;est2;est3
+
+
+```
+
+##  Encuentre la probabilidad de obtener un valor igual o mayor al estadístico usando la distribución t
+
+
+```{r}
+pt(est1,36,lower.tail = F)
+pt(est2,36,lower.tail = F)
+pt(est3,36,lower.tail = F)
+
+```
+
+## ¿Qué se concluye en términos de las hipótesis que se probaron?
+
+Hay suficiente evidencia estadística para rechazar dos de las 3 hipótesis. 
+
+
+# Cota para la diferencia:
+
+## Obtenga una cota inferior para la diferencia de las medias sólo en los casos en que se encontró una diferencia significativa.
+
+En las dos primeras hipótesis 
+
+```{r}
+
+
+alfa=0.05
+t1=qt(1-(alfa/1),36)
+
+lt1-t1*ee[1]
+lt2-t1*ee[2]
+```
+
+# Comparaciones no ortogonales 
+
+## Escriba las hipótesis y los contrastes asociados. Verifique que no son ortogonales
+
+Preguntar sobre direccion de las hipótesis
+
+Paso 1 hecho a mano. 
+
+```{r}
+v1=c(-1,1/2,1/2,0)
+v2=c(-1,0,0,1)
+
+crossprod(v1,v2)
+```
+No son ortogonales 
+
+## Encuentre las estimaciones de los contrastes, los errores estándar y el valor estandarizado del contraste.
+
+
+Los vectores hj fueron hechos a mano
+
+```{r}
+h1=c(0,-1,1/2,1/2)
+h2=c(0,-2,-1,-1)
+mat=cbind(h1,h2)
+
+l1=crossprod(coef,h1);l1
+l2=crossprod(coef,h2);l2
+
+ee=sqrt(diag(t(mat)%*%vcov(mod)%*%mat));ee
+
+st1=l1/ee[1];st1
+st2=l2/ee[2];st2
+```
+
+## Encuentre la probabilidad de obtener un valor igual o mayor al estadístico usando la distribución t.
+
+```{r}
+pt(st1,36,lower.tail = T)
+pt(st2,36,lower.tail = T)
+```
+
+## Cuantifique la diferencia en los casos en que se concluyó que hay diferencia entre un par de promedios.
+
+```{r}
+t11=qt(1-alfa/2,36)
+
+abs(l1)-t11*ee[1]
+abs(l2)-t11*ee[1] ## Se pone en valor absoluto para no cambiar el resto del código, la respuesta es correcta y no es que lo demás esté malo. No es estrictamente necesario, sin embargo, en el futuro se recomienda plantear las hipótesis de forma que siempre sea positivo. 
+
+```
+
+
+

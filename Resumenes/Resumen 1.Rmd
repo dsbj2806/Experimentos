@@ -494,6 +494,22 @@ knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experi
 
 Es básicamente traducir a suma nula o tratamiento de referencia. 
 
+Para hacer intervalos de confianza se utiliza la siguiente fórmula. 
+
+$$
+\hat L _k+-t_{1-\alpha/d,n-k}*\hat {ee}_k
+$$
+
+Recordar que solo se divide entre d si no hay independencia de hipótesis. 
+
+Y la cota inferior sería 
+
+$$
+\hat L _k-t_{1-\alpha/d,n-k}*\hat {ee}_k
+$$
+
+**NOTA:** es importante revisar el signo del estimador, es posible "manipular" las hipótesis para que siempre sean positivos. 
+
 # Comparaciones múltiples
 
 -   Para determinar cuales contrastes son diferentes de 0 se debe de evitar hacer pruebas simples de forma separada porque se aumenta la probabilidad de error tipo I
@@ -534,6 +550,8 @@ $$
 
 
 La q tiene disribución de rango estudentizado de tukey. Estos intervalos son solo cuando todas la diferencias son significativas
+**Importante: ** Estos intervalos solo se utilizan cuando es necesario calcular todos los pares, cuando no se hace con la distribuición t. 
+
 
 También se puede usar el CMRes en el error estándar.
 
@@ -541,7 +559,7 @@ Esto tiene ventajas y desventajas:
 
 -   Al usar el CMRes se usa información de todas las varianzas, ya que el CMRes es una ponderación de todas las varianzas
 
--   Su uso presupone Hoommocedasticidad, en caso de que las varianzas no sean iguales, es mejor usar las varianzas de cada grupo por separado
+-   Su uso presupone Homocedasticidad, en caso de que las varianzas no sean iguales, es mejor usar las varianzas de cada grupo por separado
 
 -   Si se tiene el mismo tamaño de muestra iguales a "r" en todos los casos el EE se reduce
 

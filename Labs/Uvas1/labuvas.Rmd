@@ -2,13 +2,13 @@
 title: "LabUvas"
 author: "Daniel Sibaja Salazar"
 output:
-  pdf_document:
-    toc: true
   html_document:
     toc: true
     toc_float: true
     toc-title: índice
     css: tema1.css
+  pdf_document:
+    toc: true
 ---
 # Preparación 
 
@@ -34,7 +34,9 @@ H1: al menos un par de mus es distinto
 ## Haga un boxplot que permita de una forma descriptiva apoyar o contradecir esta hipótesis.
 
 ```{r}
-boxplot(base$brix~base$localidad)
+boxplot(base$brix~base$localidad);abline(h=mean(base$brix))
+
+
 ```
 Parece que el promedio de Garita es un poco mayor al de Guácima o San Vito, sin embargo nada luce muy distinto. 
 
