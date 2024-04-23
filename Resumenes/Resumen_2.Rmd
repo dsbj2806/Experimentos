@@ -1,0 +1,91 @@
+---
+title: "Diseños Factoriales"
+author: "Daniel Sibaja Salazar"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    css: "tema1.css"
+---
+
+A partir de ahora vamos a ver experimentos con más de un factor. Por lo cual hay que tomar en cuenta nuevos conceptos.
+
+En este sentido a cada observación se le aplican tratamientos que son el resultado de la combinación más de un factor. (En el curso generalmente dos)
+
+Nos interesa medir los efectos sobre la variable respuesta de dos o más factores y la interacción entre ellos.
+
+## Detalles
+
+Si tenemos que un factor denominado A y otro denominado B, la cantidad de tratamientos es AxB, la combinación de todos los niveles de A con todos los de B.
+
+Si el experimento es balanceado tenemos que n=TratamientosxReplicas, es decir n=AxBxr
+
+# Interacción
+
+La interacción podemos definirla como cuando el efecto de una variable independiente sobre la variable respuesta depende del nivel o de la presencia de otra variable independiente.
+
+**NOTA:** es de suma importancia verificar si hay interacción *antes* de hacer cualquier análisis
+
+## Un experimento sin interacción.
+
+Cuando no hay interacción los efectos de ambos factores *pueden analizarse de forma separada*, analizando el promedio del nivel del factor $\bar y_{i.}$ o $\bar y_{.j}$ respecto al promedio general $\bar y$
+
+Recordemos el caso de un factor:
+
+$$
+\tau_i=\mu_j-\mu
+$$
+
+Entonces en el caso de dos factores es igual, pero los niveles tienen "otros nombres"
+
+$\bar y_{ij}$ = es el promedio del nivel i del factor A en el nivel j del factor B
+
+También es posible determinar:
+
+-   $\bar y_{i.}$ es el promedio de del factor A sin verlo para un nivel específico de B.
+
+-   $\bar y_{.j}$ es el promedio de del factor A sin verlo para un nivel específico de B.
+
+### Efectos con 2 factores (con interacción)
+
+-   **Factor A:** $\alpha_i$ es el i-ésimo nivel del factor A.
+    -   Es decir: $\alpha_i=\mu_{i.}-\mu$
+    -   O bien estimado: $\hat \alpha_i=\bar y_{i.}-\bar y$
+    
+- **Factor B:** $\beta_j$ es el j-ésimo nivel del factor B.
+    -   Es decir: $\beta _i=\mu_{.J}-\mu$
+    -   O bien estimado: $\hat \beta_i=\bar y_{.j}-\bar y$
+  
+**Nota:** La suma de los efectos deben ser iguales a 0. 
+
+
+**Nota:** Si no es balanceado hay que hacer promedios ponderados
+
+
+### En resumen, cuando no hay interacción:
+
+El efecto de un nivel del factor A es el mismo para cada nivel del factor B. 
+
+### El modelo sin interacción
+    
+$$
+\mu^{SI}_{ij}=\mu+\alpha_i+ \beta_j
+$$
+    
+## Un experimento sin interacción.
+
+Los efectos de un factor dependen del nivel en el que nos encontremos del otro factor. 
+
+En este caso ya *NO* se puede hablar del efecto de un nivel del factor A porque depende de en cual nivel del factor B estoy. 
+
+### El modelo con interacción.
+
+$$
+\mu^{CI}_{ij}=\mu+\alpha_i+ \beta_j+(\alpha\beta)_{ij}
+$$
+
+    
+    
+    
+    
+    
