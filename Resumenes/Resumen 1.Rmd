@@ -2,13 +2,13 @@
 title: "Resumen 1 Experimentos"
 author: "Daniel Sibaja Salazar"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     toc: yes
     toc_float: yes
     toc-title: "índice"
     css: "tema1.css"
-  pdf_document:
-    toc: yes
 ---
 
 # Introducción al tema
@@ -152,17 +152,26 @@ La vaarinza no tiene subindice por la homocedasticidad.
 
 Vamos a meter variables auxiliares.
 
-# Suma nula
+## Suma nula
+
 
 En este caso los coeficientes son 1 para el tratamiento de interés, 0 para los demás y -1 para el último.
 
 $$
 E[Y|trat_j]=\mu_j=\mu+\sum^{k-1}_{j=1}\tau_jC_j
-$$ Entonces i quiero tengo interés en el segundo tratamiento tengo que
+$$ 
+
+Entonces i quiero tengo interés en el segundo tratamiento tengo que
 
 (1,0,1,0) es el vector, tomando en cuenta el intercepto
 
-# Tratamiento de referencia
+En este caso los coeficientes son los efectos.
+
+Este es el llamado modelo grande, hay que escribir qué significan todas las variables.
+
+En R: options(contrasts=c("contr.sum","contr.poly"))
+
+## Tratamiento de referencia
 
 Tengo que
 
@@ -180,15 +189,21 @@ Por ejemplo:
 
 -   Si me interesa el tratamiento 1 tengo que (1,0,0,0)
 
+En este caso los coeficientes son, la media del primer nivel y los demás son la diferencia que hay entre el primer nivel y el nivel que estamos viendo. 
+
+Este es el llamado modelo grande, hay que escribir qué significan todas las variables.
+
+En R: options(contrasts=c("contr.treatment","contr.poly"))
+
 # Análisis de varianza
 
 ¿Cómo hacemos para para comprobar las hipótesis cuando queremos comparar más de dos promedios?
 
 Con un *ANDEVA* que es una técnica estadística que nos permite justamente eso.
 
-En el caso más sencillo hay dos fuentes de varianción
+En el caso más sencillo hay dos fuentes de variación
 
--   **Entre** tratamientos: Cuadrado Medio de tratanmientos CMTrat
+-   **Entre** tratamientos: Cuadrado Medio de tratamientos CMTrat
 -   **Dentro** de los tratamientos: Cuadrado medio residual CMRes
 
 ## Suma de cuadrados total
@@ -197,6 +212,10 @@ $$SCTot=\sum^n_{i=1}(y_i-\bar y )^2$$ O bien así=
 
 $$
 SCTot=SCTrat+SCRes
+$$
+
+$$
+\sum^n_{i=1}( y_i-\bar y)^2
 $$
 
 ## CMTrat:
@@ -273,6 +292,9 @@ Tomando esto en cuenta entonces:
     -   Incluso CMTrat\<CMRes
 -   Si H0 es falsa se espera que CMTrat\>CMRes
 -   Por lo tanto se puede usar el cociente de distribución F para hacer la prueba de hipótesis ya que si H0 es verdadera este valor debe de estar cerca de 1
+
+Para calcular la probabilidad asociada: pf(f,k-1,n-k,lower.tail = F)
+
 
 # Caso de un factor con dos niveles
 
@@ -488,11 +510,25 @@ $$
 \hat V[\hat L_k]=h_k^T\hat V[\hat \beta]h_k
 $$
 
+En R: var=diag(t(h)%*%vcov(mod2)%*%h)
+
 ```{r echo=FALSE}
 knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experimentos/Fotos resumenes/1.png")
 ```
 
 Es básicamente traducir a suma nula o tratamiento de referencia. 
+
+Antes de hacer intervalos es necesario determinar si las hipótesis individuales se rechazan o no 
+
+Es fácil hacerlo, solo se calcula el error estándar y se estandarizan los contrastes
+
+$$
+t=\frac{L}{ee}
+$$
+
+Y se encuentra la probabilidad asociada con **pt(t,n-k)** Si es positivo Lower.tail=false (Es necesario verificarlo, pero mejor intentar que L esa positivo)
+
+**Importante:** Estas hipótesis se verifican con alfa/cantidad de contrastes que se hacen
 
 Para hacer intervalos de confianza se utiliza la siguiente fórmula. 
 
@@ -549,8 +585,17 @@ Intervalos(1-\alpha)=(\bar y_i-\bar y_j) +- q_{\alpha,k,n-k}*ee
 $$
 
 
-La q tiene disribución de rango estudentizado de tukey. Estos intervalos son solo cuando todas la diferencias son significativas
-**Importante: ** Estos intervalos solo se utilizan cuando es necesario calcular todos los pares, cuando no se hace con la distribuición t. 
+
+La q tiene distribución de rango estudentizado de tukey. Estos intervalos son solo cuando todas la diferencias son significativas
+
+En r qtukey(1-0.05,k,n-k)
+
+
+**Importante: ** Estos intervalos solo se utilizan cuando es necesario calcular todos los pares, cuando no se hace con la distribución t. 
+
+
+qt(1-alfa, n-k) Es importante recordar la corrección y dividirlo entre dos si es un intervalo. 
+
 
 
 También se puede usar el CMRes en el error estándar.
@@ -567,7 +612,9 @@ $$
 EE=\sqrt{\frac{2CMRes}{r}}
 $$
 
--   R asume tamaños de muestra iguales y la fórmula de "q" ya incluye el 2 del EE, por lo que si se calcula el EE estándar con la fórmula correcta (la anterior) el valor de "q" que se obtiene en R debe dividirse por $\sqrt 2$ para que el resultado sea correcto.
+-   R asume tamaños de muestra iguales y la fórmula de "q" ya incluye el 2 del EE, por lo que si se calcula el EE estándar con la fórmula correcta (la anterior) el valor de "q" que se obtiene en R debe multiplicarse por $\sqrt 2$ para que el resultado sea correcto.
+
+En R: (p=ptukey(q*sqrt(2),3,97,lower.tail = F))
 
 # Comparaciones por partes de Dunnett
 

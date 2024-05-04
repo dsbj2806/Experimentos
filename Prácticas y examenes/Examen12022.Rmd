@@ -6,6 +6,79 @@ output:
     css: "tema1.css"
 ---
 
+# Pregunta 1
+
+## 1.A
+
+La variable respuesta es la diferencia entre las mediciones de la frecuencia cardiaca, esta variable respuesta es conveniente porque de esa forma podemos observar cuanto cambiaron estas y no una medición de después de después de hacer ejercicios en la que en realidad no tenemos forma de saber si una persona tiene estas variables así por los ejercicios o porque ya es así por otra razón. 
+
+## 1.B 
+
+El error tipo II se comete cuando la hipótesis no se rechaza siendo falsa. En el contexto de un experimento de un factor, esto significaría asumir que ningún ejercicio produce una mayor o menos afectación en la frecuencia cardíaca. Es fácil imaginar el problema que podría significar, si por ejemplo, a la hora de recomendarle un ejercicio a una persona con problemas del corazón en realidad le recomendamos uno que aumenta más su frecuencia de lo que debe, existiendo otras alternativas. 
+
+## 1.C
+
+Se fija el hecho de que son personas de un equipo de balonmano, lo cual implica que son personas que hacen ejercicio, probablemente de edades similares o iguales y que todos son del mismo género.
+Esto ayuda controlar alguna de que estas variables metan ruido a la variabilidad de la variable respuesta. 
+
+## 1.D 
+
+Con el modelo de suma nula, el vector sería:
+
+c(1,-1,-1,-1)
+
+## 1.E
+
+Como se hizo con el tratamiento de referencia entonces debo de tomar el vector de sentadillas 
+
+c(1,0,0,1)
+
+y multiplicarlo por el vector de coeficientes 
+
+el experimento es balanceado entonces puedo sacar el promedio general, promediando los promedios por tratamiento
+
+```{r}
+vc=c(1,0,0,0)
+vj=c(1,1,0,0)
+vsc=c(1,0,1,0)
+vs=c(1,0,0,1)
+coef=c(42.6,-8.4,-4.4,-9.0)
+
+
+mean(c(vc%*%coef,vj%*%coef,vsc%*%coef,vs%*%coef)) ## Ni idea de como calcular el promedio general, en la solución del examen dice que es 37.15
+
+vs%*%coef-37.15
+
+promedios=c(vc%*%coef,vj%*%coef,vsc%*%coef,vs%*%coef);names(promedios)=c("Correr","JumpingJacks","Salto","Sentadillas");promedios
+```
+El efecto es -3.55, quiere decir que el promedio del tratamiento es 3.55 unidades menor que el promedio general.
+
+## 1.F
+
+Las hipótesis son las siguientes:
+
+- $H0: \frac {\mu2+\mu4}{2}=\frac {\mu1+\mu3}{2}$
+- $H0: \mu2=\mu4$
+- $H0: \mu1=\mu3$
+
+Los vectores para determinar ortogonalidad son los siguientes.
+
+- (1/2,-1/2,1/2,-1/2)
+- (0,1,0,-1)
+- (1,0,-1,0)
+
+```{r}
+v1=c(1/2,-1/2,1/2,-1/2)
+v2=c(0,1,0,-1)
+v3=c(1,0,-1,0)
+
+crossprod(v1,v2)
+crossprod(v1,v3)
+crossprod(v2,v3)
+```
+
+Si hay ortogonalidad, lo cual indica que no hay que hay que hacer corrección de Bonferroni. 
+
 
 
 # Pregunta 2

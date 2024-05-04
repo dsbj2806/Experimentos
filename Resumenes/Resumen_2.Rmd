@@ -71,7 +71,17 @@ El efecto de un nivel del factor A es el mismo para cada nivel del factor B.
 $$
 \mu^{SI}_{ij}=\mu+\alpha_i+ \beta_j
 $$
-    
+
+También se pueden conseguir los efectos simples de cada nivel
+
+$$
+\alpha_i=\mu_i.-\mu
+$$
+
+$$
+\beta_j=\mu_j.-\mu
+$$
+
 ## Un experimento sin interacción.
 
 Los efectos de un factor dependen del nivel en el que nos encontremos del otro factor. 
@@ -85,7 +95,96 @@ $$
 $$
 
     
+Tomando esto en cuenta la diferencia entre el modelo con interacción y sin interacción es la siguiente 
+
+$$
+(\alpha\beta)_{ij}=mu^{CI}_{ij}-\mu^{SI}_{ij}
+$$
+
     
     
-    
-    
+Este modelo produce estimaciones de las medias por tratamiento iguales a las medias observadas de cada tratamiento, debido a que siempre se está bajo el efecto de la interacción (aunque este sea 0) 
+
+$$
+\mu^{CI}_{ij}=\bar y_{ij}
+$$
+
+En este caso es necesario hacer una prueba de hipótesis para saber si hay interacción o no. 
+
+$$
+H0: (\alpha\beta)_{ij}=0
+$$
+
+#### Estimación de efectos de interacción
+
+Estas estimaciones pueden ser obtenidas mediante la estimación de las medias de ambos modelos 
+
+Recordemos
+
+$$
+\mu^{SI}_{ij}=\mu+\alpha_i+ \beta_j
+$$
+
+Entonces podemos estimar los efectos de la interacción así
+
+$$
+(\alpha\beta)_{ij}=mu^{CI}_{ij}-\mu^{SI}_{ij}=\bar y_{ij}-(\bar y+\alpha_i+ \beta_j)
+$$
+
+Los efectos de interacción deben todos sumar 0, si se colocan en una tabla, deben de sumar 0 entre filas y entre columnas. 
+
+En muchos casos para tener acceso a la tabla completa, basta con tener (gl) efectos 
+
+Los gl se consiguen de esta forma. 
+
+$$
+(a-1)*(b-1)
+$$
+
+Hay que tomar en cuenta también que en el caso con interacción existen efectos de interacción y efectos del factor. Si hay interacción **dependen** del nivel del factor en el que se esté.
+
+# Análisis de varianza.
+
+## Con interacción.
+
+La lógica e la misma que con un factor, solo que ahora con interacción se divide la variabilidad total (Suma de cuadrados Total) en cuatro distintas fuentes de variación. 
+
+- Variación *entre* los promedios del primer factor.
+- Variación *entre* los promedios del segundo factor.
+- Variación *debida* a la interacción.
+- Variación *dentro* de los tratamientos.
+
+## Sin interacción. 
+
+La suma de cuadrados total se descompone de la siguiente forma.
+
+- Variación *entre* los promedios del primer factor.
+- Variación *entre* los promedios del segundo factor.
+- Variación *dentro* de los tratamientos.
+
+**NOTA:** La suma de cuadrados total no cambia. Solo se desglosa de diferente forma, tampoco cambia la variación entre promedios del primer factor ni del segundo. Solo cambia la variación dentro de los tratamientos, ya que es la que se desglosa con la variación debida a la interacción. 
+
+
+## Forma de calculo. 
+
+### Entre los promedios de los factores. 
+
+
+$$
+CMFactor1= \frac{\sum r_{i.}(\bar y _{i.}-\bar y )^2}{a-1}
+$$
+
+$$
+CMFactor1= \frac{\sum r_{.j}(\bar y _{.j}-\bar y )^2}{b-1}
+$$
+
+## De interacción. 
+
+$$
+CMInt= \frac{\sum r (\hat {\alpha \beta})^2_{ij}}{(a-1)(b-1)}
+$$
+
+## Variación de los errores
+
+
+
