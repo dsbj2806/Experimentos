@@ -1561,6 +1561,13 @@ factor B.</p>
 <p><span class="math display">\[
 \mu^{SI}_{ij}=\mu+\alpha_i+ \beta_j
 \]</span></p>
+<p>También se pueden conseguir los efectos simples de cada nivel</p>
+<p><span class="math display">\[
+\alpha_i=\mu_i.-\mu
+\]</span></p>
+<p><span class="math display">\[
+\beta_j=\mu_j.-\mu
+\]</span></p>
 </div>
 </div>
 <div id="un-experimento-sin-interacción.-1" class="section level2">
@@ -1574,7 +1581,174 @@ del factor A porque depende de en cual nivel del factor B estoy.</p>
 <p><span class="math display">\[
 \mu^{CI}_{ij}=\mu+\alpha_i+ \beta_j+(\alpha\beta)_{ij}
 \]</span></p>
+<p>Tomando esto en cuenta la diferencia entre el modelo con interacción
+y sin interacción es la siguiente</p>
+<p><span class="math display">\[
+(\alpha\beta)_{ij}=mu^{CI}_{ij}-\mu^{SI}_{ij}
+\]</span></p>
+<p>Este modelo produce estimaciones de las medias por tratamiento
+iguales a las medias observadas de cada tratamiento, debido a que
+siempre se está bajo el efecto de la interacción (aunque este sea 0)</p>
+<p><span class="math display">\[
+\mu^{CI}_{ij}=\bar y_{ij}
+\]</span></p>
+<p>En este caso es necesario hacer una prueba de hipótesis para saber si
+hay interacción o no.</p>
+<p><span class="math display">\[
+H0: (\alpha\beta)_{ij}=0
+\]</span></p>
+<div id="estimación-de-efectos-de-interacción" class="section level4">
+<h4>Estimación de efectos de interacción</h4>
+<p>Estas estimaciones pueden ser obtenidas mediante la estimación de las
+medias de ambos modelos</p>
+<p>Recordemos</p>
+<p><span class="math display">\[
+\mu^{SI}_{ij}=\mu+\alpha_i+ \beta_j
+\]</span></p>
+<p>Entonces podemos estimar los efectos de la interacción así</p>
+<p><span class="math display">\[
+(\alpha\beta)_{ij}=mu^{CI}_{ij}-\mu^{SI}_{ij}=\bar y_{ij}-(\bar
+y+\alpha_i+ \beta_j)
+\]</span></p>
+<p>Los efectos de interacción deben todos sumar 0, si se colocan en una
+tabla, deben de sumar 0 entre filas y entre columnas.</p>
+<p>En muchos casos para tener acceso a la tabla completa, basta con
+tener (gl) efectos. También los grados de libertad son los coeficientes
+de interacción que tendremos (en caso de necesitarlos)</p>
+<p>Los gl se consiguen de esta forma.</p>
+<p><span class="math display">\[
+(a-1)*(b-1)
+\]</span></p>
+<p>Hay que tomar en cuenta también que en el caso con interacción
+existen efectos de interacción y efectos del factor. Si hay interacción
+<strong>dependen</strong> del nivel del factor en el que se esté.</p>
 </div>
+</div>
+</div>
+</div>
+<div id="análisis-de-varianza." class="section level1">
+<h1>Análisis de varianza.</h1>
+<div id="con-interacción." class="section level2">
+<h2>Con interacción.</h2>
+<p>La lógica e la misma que con un factor, solo que ahora con
+interacción se divide la variabilidad total (Suma de cuadrados Total) en
+cuatro distintas fuentes de variación.</p>
+<ul>
+<li>Variación <em>entre</em> los promedios del primer factor.</li>
+<li>Variación <em>entre</em> los promedios del segundo factor.</li>
+<li>Variación <em>debida</em> a la interacción.</li>
+<li>Variación <em>dentro</em> de los tratamientos.</li>
+</ul>
+</div>
+<div id="sin-interacción." class="section level2">
+<h2>Sin interacción.</h2>
+<p>La suma de cuadrados total se descompone de la siguiente forma.</p>
+<ul>
+<li>Variación <em>entre</em> los promedios del primer factor.</li>
+<li>Variación <em>entre</em> los promedios del segundo factor.</li>
+<li>Variación <em>dentro</em> de los tratamientos.</li>
+</ul>
+<p><strong>NOTA:</strong> La suma de cuadrados total no cambia. Solo se
+desglosa de diferente forma, tampoco cambia la variación entre promedios
+del primer factor ni del segundo. Solo cambia la variación dentro de los
+tratamientos, ya que es la que se desglosa con la variación debida a la
+interacción.</p>
+</div>
+<div id="forma-de-calculo." class="section level2">
+<h2>Forma de calculo.</h2>
+<div id="entre-los-promedios-de-los-factores." class="section level3">
+<h3>Entre los promedios de los factores.</h3>
+<p><span class="math display">\[
+CMFactor1= \frac{\sum r_{i.}(\bar y _{i.}-\bar y )^2}{a-1}
+\]</span></p>
+<p><span class="math display">\[
+CMFactor1= \frac{\sum r_{.j}(\bar y _{.j}-\bar y )^2}{b-1}
+\]</span></p>
+</div>
+</div>
+<div id="de-interacción." class="section level2">
+<h2>De interacción.</h2>
+<p><span class="math display">\[
+CMInt= \frac{\sum r (\hat {\alpha \beta})^2_{ij}}{(a-1)(b-1)}
+\]</span></p>
+</div>
+<div id="variación-de-los-errores" class="section level2">
+<h2>Variación de los errores</h2>
+<p>Es la diferencia entre cada valor observado y la media del
+tratamiento a la que pertenece, el residual es lo mismo pero respecto a
+la media estimada de cada tratamiento.</p>
+<p>Cuanto se desvía cada valor del promedio del tratamiento.</p>
+<p>El cuadrado medio residual es una medida de la variabilidad de los
+residuales en conjunto.</p>
+<p><span class="math display">\[
+CMRes=\frac{\sum_i\sum_j(r_{ij-1})s^2_{ij}}{n-k}
+\]</span> donde:</p>
+<ul>
+<li>n= tamaño de muestra total</li>
+<li>k= número de tratamientos</li>
+<li><span class="math inline">\(r_{ij}\)</span>= Réplicas por
+tratamiento</li>
+</ul>
+<p>Este valor es deseable que sea pequeñito.</p>
+</div>
+</div>
+<div id="análisis-de-varianza.-1" class="section level1">
+<h1>Análisis de Varianza.</h1>
+<p>Ahora tenemos tres hipótesis en lugar de una. Una por cada fuente de
+variación (menos la residual).</p>
+<ul>
+<li>Al factor I: <span class="math inline">\(CMTratI/CMRes=F\)</span>
+con la hipótesis nula de <span class="math inline">\(H0:
+\alpha_i=0\)</span></li>
+<li>Al factor II: <span class="math inline">\(CMTratII/CMRes=F\)</span>
+con la hipótesis nula de <span class="math inline">\(H0:
+\beta_j=0\)</span></li>
+<li>A la interacción: <span class="math inline">\(CMInt/CMRes=F\)</span>
+con la hipótesis nula de <span class="math inline">\(H0:
+(\alpha\beta)_{ij}=0\)</span></li>
+</ul>
+<p>En este caso mi <strong>primer interés</strong> es siempre revisar la
+hipótesis de <em>interacción</em>, ya que esto cambia la
+interpretación.</p>
+<p>Es importante recordar que solo puedo dar conclusiones en términos de
+los tratamientos individualmente si y solo si no hay interacción, ya que
+si hay el efecto de un nivel de a, depende del nivel de b en el que esté
+(o como se quiera ver)</p>
+<div id="promedios-estimados.-ignorando-la-interacción" class="section level2">
+<h2>Promedios estimados. (Ignorando la interacción)</h2>
+<p>Estos (prácticamente) nunca van a coincidir con los promedios
+observados por tratamiento, ya que el efecto de interacción, por más
+minúsculo o insignificante que sea siempre va a estar ahí (A no ser de
+que sea literalmente 0), esto es independiente de si se encuentra que la
+interacción es estadísticamente no significativa.</p>
+<p>Por esta razón debemos estimar los promedios con los efectos por
+nivel del factor.</p>
+<p><span class="math display">\[
+\bar y_{ij}= \bar{ \bar y}+\alpha_i+\beta_j
+\]</span></p>
+</div>
+<div id="promedios-observados" class="section level2">
+<h2>Promedios Observados</h2>
+<p>Siempre van a contener los efectos de interacción, aunque sean muy
+mínimos, por eso no coinciden con los estimados. (A no ser de que sea
+exactamente 0)</p>
+<div id="más-sobre-la-interacción-en-el-anova" class="section level3">
+<h3>Más sobre la interacción en el ANOVA</h3>
+<p>Es importante siempre considerar la interacción si es significativa.
+Porque si no estoy inflando el cuadrado medio residual.</p>
+<p>Si no rechazo esta hipótesis, es mala idea dejar la interacción en el
+modelo porque si no estoy gastando grados de libertad.</p>
+</div>
+</div>
+<div id="anova-ignorando-interacción" class="section level2">
+<h2>ANOVA (Ignorando interacción)</h2>
+<p>En este caso hay que tomar en cuenta varias cosas: - El CMRes ahora
+contiene la variabilidad que no explican los dos tratamientos, es decir,
+se incluye la variabilidad que hubiera estado en el cuadrado medio de
+interacción. Esta aumenta. - Los residuales se calculan ahora respecto a
+la <em>media estimada sin interacción</em>, que es diferente a la media
+observada, esto causa que aumente la Suma de cuadrados residual. - Es
+importante recordar que la suma de cuadrados total siempre es fija.</p>
 </div>
 </div>
 

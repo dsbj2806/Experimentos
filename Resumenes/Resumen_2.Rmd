@@ -133,7 +133,7 @@ $$
 
 Los efectos de interacción deben todos sumar 0, si se colocan en una tabla, deben de sumar 0 entre filas y entre columnas. 
 
-En muchos casos para tener acceso a la tabla completa, basta con tener (gl) efectos 
+En muchos casos para tener acceso a la tabla completa, basta con tener (gl) efectos. También los grados de libertad son los coeficientes de interacción que tendremos (en caso de necesitarlos)
 
 Los gl se consiguen de esta forma. 
 
@@ -185,6 +185,77 @@ CMInt= \frac{\sum r (\hat {\alpha \beta})^2_{ij}}{(a-1)(b-1)}
 $$
 
 ## Variación de los errores
+
+Es la diferencia entre cada valor observado y la media del tratamiento a la que pertenece, el residual es lo mismo pero respecto a la media estimada de cada tratamiento. 
+
+Cuanto se desvía cada valor del promedio del tratamiento. 
+
+El cuadrado medio residual es una medida de la variabilidad de los residuales en conjunto. 
+
+$$
+CMRes=\frac{\sum_i\sum_j(r_{ij-1})s^2_{ij}}{n-k}
+$$
+donde: 
+
+- n= tamaño de muestra total
+- k= número de tratamientos
+- $r_{ij}$= Réplicas por tratamiento
+
+Este valor es deseable que sea pequeñito.
+
+# Análisis de Varianza. 
+
+Ahora tenemos tres hipótesis en lugar de una. Una por cada fuente de variación (menos la residual). 
+
+- Al factor I: $CMTratI/CMRes=F$ con la hipótesis nula de $H0: \alpha_i=0$
+- Al factor II: $CMTratII/CMRes=F$ con la hipótesis nula de $H0: \beta_j=0$
+- A la interacción: $CMInt/CMRes=F$ con la hipótesis nula de $H0: (\alpha\beta)_{ij}=0$
+
+En este caso mi **primer interés** es siempre revisar la hipótesis de *interacción*, ya que esto cambia la interpretación. 
+
+Es importante recordar que solo puedo dar conclusiones en términos de los tratamientos individualmente si y solo si no hay interacción, ya que si hay el efecto de un nivel de a, depende del nivel de b en el que esté (o como se quiera ver)
+
+## Promedios estimados. (Ignorando la interacción)
+
+Estos (prácticamente) nunca van a coincidir con los promedios observados por tratamiento, ya que el efecto de interacción, por más minúsculo o insignificante que sea siempre va a estar ahí (A no ser de que sea literalmente 0), esto es independiente de si se encuentra que la interacción es estadísticamente no significativa. 
+
+Por esta razón debemos estimar los promedios con los efectos por nivel del factor. 
+
+$$
+\bar y_{ij}= \bar{ \bar y}+\alpha_i+\beta_j
+$$
+
+## Promedios Observados 
+
+Siempre van a contener los efectos de interacción, aunque sean muy mínimos, por eso no coinciden con los estimados. (A no ser de que sea exactamente 0)
+
+### Más sobre la interacción en el ANOVA
+
+Es importante siempre considerar la interacción si es significativa. Porque si no estoy inflando el cuadrado medio residual. 
+
+Si no rechazo esta hipótesis, es mala idea dejar la interacción en el modelo porque si no estoy gastando grados de libertad. 
+
+
+## ANOVA (Ignorando interacción)
+
+En este caso hay que tomar en cuenta varias cosas: 
+- El CMRes ahora contiene la variabilidad que no explican los dos tratamientos, es decir, se incluye la variabilidad que hubiera estado en el cuadrado medio de interacción. Esta aumenta.
+- Los residuales se calculan ahora respecto a la *media estimada sin interacción*, que es diferente a la media observada, esto causa que aumente la Suma de cuadrados residual. 
+- Es importante recordar que la suma de cuadrados total siempre es fija. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
