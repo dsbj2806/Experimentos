@@ -1,0 +1,67 @@
+---
+title: "Actividad Confusión"
+author: "Daniel Sibaja Salazar"
+date: "2024-05-21"
+output: html_document
+---
+
+Datos 
+
+```{r}
+load("nicotina.rdata")
+str(base)
+```
+
+# 1
+
+```{r}
+mod1=lm(señal~temperatura,data = base)
+anova(mod1)
+```
+
+Sale significativo 
+
+# 2 
+
+```{r}
+mod2=lm(señal~presion,data = base)
+anova(mod2)
+```
+
+Sale significativo 
+
+# 3
+
+```{r}
+mod3=lm(señal~SI,data = base)
+anova(mod3)
+```
+
+Sale significativo 
+
+# 4 
+
+Todos salen significativos y con el mismo cmtres y cmtrat 
+
+# 5
+
+```{r}
+mod4=lm(señal~temperatura+presion+SI,data = base)
+coef(mod4)
+```
+
+Hay dos NA 
+
+# 6
+
+```{r}
+table(base$temperatura,base$presion,base$SI)
+```
+
+Hay tratamientos con 0, o sea no se pueden sacar conclusiones. 
+
+
+
+
+
+

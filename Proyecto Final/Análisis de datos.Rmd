@@ -1,0 +1,77 @@
+---
+title: "Análisis de datos proyecto Final de experimentos I"
+author: "Daniel Sibaja Salazar"
+date: "2024-05-16"
+output: pdf_document
+---
+
+# Preparación
+
+```{r}
+#options(scipen = 999)
+#options(digits = 4)
+```
+
+
+# Lectura de datos
+
+```{r}
+base=read.csv("final_registro_completo.csv")
+names(base)=c("y","bl","local","denegado","detectado","solicitudes") ## A nombres más sencillos de utilizar
+```
+
+## Cantidad de réplicas por tratamiento
+
+```{r}
+table(base$bl,base$local,base$solicitudes)
+table(base$local,base$bl)
+```
+
+## Pasar a factor 
+
+Solo voy a pasar a factor lo que necesito.
+```{r}
+base$bl=as.factor(base$bl)
+levels(base$bl)=c("BL","ML")
+
+base$local=as.factor(base$local)
+levels(base$local)=c("Local","Nube")
+
+base$solicitudes=as.factor(base$solicitudes)
+levels(base$solicitudes)=c("10","100","500")
+
+str(base)
+```
+
+## Pasar de segundos a milisegundos
+
+```{r}
+base$y=base$y*1
+
+```
+
+
+# Análisis de datos 
+
+## Estadística descriptiva 
+
+```{r}
+mg=mean(base$y);mg # Media general
+mt=tapply(base$y,list(base$bl,base$local,base$solicitudes),mean);mt # Media por tratamiento
+
+
+vg=mean(base$y);vg # Varianza general
+vt=tapply(base$y,list(base$bl,base$local,base$solicitudes),mean);vt #Varianza por tratamiento 
+```
+
+
+## ANOVA
+```{r}
+mod=lm(y~bl*local*solicitudes,data = base)
+anova(mod)
+
+```
+
+
+
+

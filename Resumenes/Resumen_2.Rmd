@@ -246,7 +246,7 @@ Necesito a-1 variables auxiliares en el primer factor y b-1 en el segundo.
 
 Ejemplo:
 
-```{r}
+```{r echo=FALSE}
 knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experimentos/Fotos resumenes/5.png")
 ```
 
@@ -264,13 +264,13 @@ $$
 E[Y|trat]=\mu+\alpha_1A_1+\alpha_2A_2+\beta_1B_1+(\alpha\beta)_{11}A_1B_1+(\alpha\beta)_{21}A_2B_1
 $$
 
-No necesitamos todos los efectos en el modelo porque sabemos que hay equivalencias gracias a las parametrizaciones.
+No necesitamos todos los efectos en el modelo porque sabemos que hay equivalencias gracias a las parametrizaciones. Solo es necesario colocar (a-1)(b-1) efectos de interacción.
 
 Entonces la tabla completa quedaría algo así:
 
 Para incluir la interacción debo de multiplicar las variables auxiliares anteriores
 
-```{r}
+```{r echo=FALSE}
 knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experimentos/Fotos resumenes/6.png")
 ```
 
@@ -278,7 +278,7 @@ knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experi
 
 Es igual que anteriormente, solo con unos y 0
 
-```{r}
+```{r echo=FALSE}
 knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experimentos/Fotos resumenes/7.png")
 ```
 
@@ -290,15 +290,40 @@ $$
 H0: (\alpha\beta)_{ij}=0
 $$ Entonces tenemos dos situaciones:
 
--   Si no se rechaza la hipótesis: No hay interacción y se quieren comparar todos los pares de un factor se pueden comparar usando Tukey (si el efecto del factor es significativo)
-
--   Si hay interacción quiere decir que no puedo comparar los factores independientemente de cada uno de ellos. En este caso hay que tomar diferentes consideraciones.
+-   **CI** Si se rechaza la hipótesis hay interacción quiere decir que no puedo comparar los factores independientemente de cada uno de ellos. En este caso hay que tomar diferentes consideraciones.
 
     -   Se hacen comparaciones de las medias del factor principal para cada nivel del otro factor (se fijan)
+
     -   Se debe de hacer bonferroni cuando es necesario (O cuando se comparan todos los pares con todos)
+
     -   Para hacer bonferroni debo de dividir el alfa entre d, siendo d la cantidad de pares que quiero comparar dentro del nivel del factor que no es principal, es decir si el factor B tiene 2 niveles y el factor A tiene 3 niveles, d sería igual a 3.
 
-## Ejemplo del modelo sin interacción 
+        -   En ese sentido dentro de los niveles no hay independencia (Ortogonalidad) , entre los niveles si hay independencia.
+
+    -   Las hipótesis lucen algo así
+
+        -   $H0: \mu_{11}=\mu_{21}$
+    - En este caso se hace fijando en un nivel del factor que no es de diseño para todos los niveles del otro factor. 
+
+-   **SI** Si no se rechaza la hipótesis: No hay interacción y se quieren comparar todos los pares de un factor se pueden comparar usando Tukey (si el efecto del factor es significativo).
+
+    -   En este caso se reajusta el modelo sin tomar en cuenta esa fuente de interacción.
+
+    -   Se hacen comparaciones para los factores con *efectos significativos.*
+
+    -   Las hipótesis en este caso lucirían algo así:
+
+        -   $H0: \mu_{1.}=\mu_{2.}$
+
+    -   Las hipótesis deben de ser con la media marginal debido a un tema de notación, aunque estemos solo en un factor, el otro factor no debe ser ignorado en este aspecto.
+
+    -   Las medias y vectores marginales solo pueden ser usados de esta forma con el modelo de suma nula, con tratamiento de referencia es más complejo.
+
+    -   Por supuesto, puedo calcular las medias marginales con vectores y el vector de coeficientes del modelo
+
+    -   Para calcular la resta de mu1 con mu2, también puedo hacerlo restando los vectores.
+
+## Ejemplo del modelo sin interacción
 
 En un ejemplo sin interacción, para comparar todos los pares se recurre al método de Tukey, para hacer estas comparaciones debo de recurrir a las medias marginales para cada nivel del factor.
 
@@ -318,10 +343,25 @@ $$
 \mu_{1.}=\mu+\alpha_1*0+\alpha_2*1+\beta_1*0=\mu+\alpha_2
 $$
 
-
 Para el nivel 3 se deben de hacer A1=-1 y A2=-1
 
 $$
 \mu_{1.}=\mu+\alpha_1*-1+\alpha_2*-1+\beta_1*0=\mu+\alpha_3
 $$
+
+# Variables confusoras 
+
+Una variable confusora crea un desbalance en el experimento, el cual hace difícil llegar a conclusiones que la variable respuesta sea consecuencia del tratamiento o de otro factor 
+
+Por ejemplo: 
+
+En el caso de las serpientes, si hay muchas hembras y muy pocos machos en una especie, y hay muchos machos y muy pocas hembras, es posible que haya una confusión, porque no sabriamos si las diferencia de veneno se deben a la especie, o a que los machos de la especie B inyectan una cantidad diferente de veneno que a las hembras de la especie A. 
+
+- En este caso el problema de la confusión, el mismo se puede atacar, por ejemplo, registrando el sexo de las serpientes y viendo si hay un desbalance en ese sentido. 
+
+- La aleatorización es una forma de atacar la confusión
+
+- En un experimento ya hecho, se puede aumentar el tamaño de muestra siempre y cuando esto no afecte la variable respuesta de alguna forma. 
+
+    - Si esto afecta la respuesta es mejor diseñar el experimento desde 0, pero tomando en cuenta el desbalance (es complicado y caro, no siempre se puede hacer)
 

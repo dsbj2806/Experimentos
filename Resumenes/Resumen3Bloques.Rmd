@@ -1,0 +1,92 @@
+---
+title: "Diseño de Bloques"
+author: "Daniel Sibaja Salazar"
+date: "2024-05-21"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    css: "tema1.css"
+---
+
+# Concepto 
+
+Hay veces en el que las unidades experimentales no son muy parecidas entre sí, o entre ellas pueden haber diferencias que afecten los resultados del experimento. En este caso el diseño al azar no es óptimo 
+
+- Aunque también es posible generar bloques de unidades similares  para mejorar la sensibilidad del experimento. 
+
+Este agrupamiento de unidades no homogeneas en grupos homogeneos significa un beneficio en el sentido de que se reduce el error e incrementa el rango de validez para hacer inferencia. 
+
+También es posible que los bloques se construyan de forma natural. 
+
+Se aplican tantas unidaddes dentro del bloque como tratamientos se estén analizando, estos tratamientos se asignan aleatoriamente dentro del bloque 
+
+En este sentido los bloques son unidades estadísticas compuestas que se extraen de una población de bloques. Dentro del bloque están las unidades estadísticas a analizar. 
+
+- Esto quiere decir que tenemos una muestra de bloques proveniente de una población de bloques, aunque esta selección de muestra no necesariamente es al azar. 
+
+Debemos pensar en dos características para reconocer un bloque: 
+
+- Cada bloque **debe de contener** todos los tratamientos
+- Se puede aumentar su número 
+
+Cuando se tiene una observación por tratamiento dentro del bloque, el número de réplicas es igual al número de bloques, aunque esto no necesariamente debe de ser así. 
+
+- Cuando hay más de una réplica dentro de un bloque tengo problemas de independencia de las observaciones. No se puede hacer un ANOVA y debo de hacerlo con modelos mixtos. 
+
+## Enfoques para el análisis de un diseño de bloques 
+
+### Clásico 
+
+Partición de las sumas de cuadrados total en un análisis de varianza, se añaden los bloques como variabilidad.
+
+- Con este enfoque la varianza residual se puede reducir considerando las diferencias de los promedios entre los bloques, entre más distintos son los bloques mayor variabilidad se elimina.
+
+El modelo de suma nula con un factor y datos tomados por bloque es similar a un diseño con dos factores sin interacción. 
+
+$$
+\mu_{jk}=\mu+\tau_j+\delta_k
+$$
+donde: 
+
+-$\tau_j$ y $\delta_k$ son el efecto del factor y el del bloque respectivamente. 
+- j=1,...,a con a tratamientos
+- k=1,...,b con b bloques. 
+
+También se tiene que: 
+
+- $\sum^a_{j=1} \tau_j =0$ 
+- $\sum^b_{k=1} \delta_k =0$ 
+
+
+### Moderno 
+
+Usa *modelos mixtos* Ya que el efoque del bloque se considera un elemento aleatorio que tiene una distribución $N(0,\sigma^2_\delta)$
+
+- Cuando la varianza de esta distribución es cercana a 0 se considera que el efecto de los bloques no es importante (porque todos se parecen) 
+    - Se tiene esta prueba de hipótesis $H0:\sigma^2_\delta=0$ 
+    
+- Cuando hay más de una réplica por tratamiento por bloque este modelo es el más adecuado. Ya que **no hay independencia**. El anova asume independencia, este enfoque no. 
+
+Para el modelo se debe de tomar en cuenta que los efectos de bloque vienen de una distribución de *media 0*.
+
+La media 0 es el equivalente a la restricción de suma nula para los efectos del bloque pero para toda la población. 
+
+
+$$
+\mu_{jk}=\mu+\tau_j+\delta_k
+$$
+
+donde: 
+
+-$\tau_j$ y $\delta_k$ son el efecto del factor y el del bloque respectivamente. 
+
+- j=1,...,a con a tratamientos
+
+- $ \delta \sim N(0,\sigma^2_\delta)$
+
+
+
+
+
+
