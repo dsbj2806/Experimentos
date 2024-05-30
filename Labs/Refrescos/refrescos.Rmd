@@ -1,0 +1,538 @@
+---
+title: "Refrescos"
+author: "Daniel Sibaja Salazar"
+date: "2024-05-29"
+output: html_document
+---
+
+# Preparación
+
+## Cargue el archivo refrescos.Rdata. Verifique que todos los factores estén bien definidos.
+
+```{r}
+load("refrescos.rdata")
+str(base)
+```
+
+## Obtenga los promedios de todos los tratamientos.
+
+```{r}
+mo=tapply(base$desvabs,list(base$carbonatacion,base$presion,base$rapidez),mean)
+mo
+```
+
+## Observe cuál es el tratamiento que parece acercarse más al objetivo de la producción.
+
+El que es más cercano a 0, el de 200 de rapidez, 10 de carbonatación, y 30 de presión. 
+
+# 2. Interacciones dobles:
+
+
+## Haga un gráfico para ver la interacción entre presión y carbonatación
+
+```{r}
+library(ggplot2)
+
+ggplot(base,aes(x=carbonatacion,y=desvabs,group = presion))+
+  stat_summary(fun.y = "mean",geom = "line",aes(linetype = presion))
+
+ggplot(base,aes(x=rapidez,y=desvabs,group = presion))+
+  stat_summary(fun.y = "mean",geom = "line",aes(linetype = presion))
+
+ggplot(base,aes(x=carbonatacion,y=desvabs,group = rapidez))+
+  stat_summary(fun.y = "mean",geom = "line",aes(linetype = rapidez))
+```
+
+Según se observa en lo gráficos se puede esperar en los pares de presión-carbonatación y presión-rapidez. Por otro lado rapidez-carbonatación no es tan fácil de observar gráficamente. Por lo que no se espera en todos los pares. ¿Quiere decir que no hay interacción triple? 
+
+
+## Obtenga los promedios cruzando sólo dos factores a la vez. Es decir, los promedios cruzando carbonatación y presión.
+
+```{r}
+mcp=tapply(base$desvabs,list(base$carbonatacion,base$presion),mean)
+
+mpr=tapply(base$desvabs,list(base$presion,base$rapidez),mean)
+
+mcr=tapply(base$desvabs,list(base$carbonatacion,base$rapidez),mean)
+
+mcp
+mpr
+mcr
+```
+
+- Para el par 1: +- en 1.25
+- Para el par 2: +- en 3
+- Para el par 3: +- en muy poco 0.1
+
+## Obtenga los promedios marginales para cada nivel de cada factor
+
+```{r}
+mc=tapply(base$desvabs,base$carbonatacion,mean)
+mp=tapply(base$desvabs,base$presion,mean)
+mr=tapply(base$desvabs,base$rapidez,mean)
+
+mc;mp;mr
+```
+
+
+## (d) Obtenga la estimación de los efectos simples de cada factor.
+
+
+```{r}
+mg=mean(base$desvabs);mg
+
+ec=mc-mg
+ep=mp-mg
+er=mr-mg
+
+ec;ep;er
+```
+
+## Obtenga la estimación del efecto de la interacción entre carbonatación y presión para el caso de carbonatación 10% y presión 25 psi. Esta medida se llama interacción de primer orden. Luego obtenga el efecto de la interacción de primer orden entre presión 25 psi y rapidez 200 bpm, y finalmente entre carbonatación 10% y rapidez 200 bpm.
+
+```{r}
+icp=mcp[1,1]-(mg+ec[1]+ep[1])
+ipr=mpr[1,1]-(mg+ep[1]+er[1])
+icr=mcr[1,1]-(mg+er[1]+ec[1])
+
+icp
+ipr
+icr
+```
+
+##  Verifique los efectos simples y de las interacciones de primer orden obtenidas usando un modelo con interacciones dobles.
+
+```{r}
+options(contrasts = c("contr.sum","contr.poly"))
+mod=lm(desvabs~carbonatacion*presion+carbonatacion*rapidez+rapidez*presion,data = base)
+mod$coefficients
+```
+
+
+# 3. Interacción triple:
+
+## Para visualizar si existe interacción conjunta entre los tres factores se analiza la interacción entre dos de ellos, pero separando para cada nivel del tercer factor. Use la función xyplot en la librería lattice de la siguiente forma: y~x1|x3,group=x2,pch=18,type="a").
+
+```{r}
+library(lattice)
+xyplot(base$desvabs~base$carbonatacion|base$rapidez,group=base$presion,pch=18,type="a")
+```
+
+
+## Observe
+
+No lo es
+
+## Escriba el modelo con interacción triple, indicando a qué corresponde cada subíndice.
+
+$$
+E[y|trat]=\mu+\tau_i+\phi_j+\delta_k+(\tau \phi)_{ij}+(\tau \delta)_{ik}+(\phi \delta)_{jk}+(\tau \phi \delta)_{ijk}
+$$
+
+
+### Realice el cálculo para encontrar el efecto de interacción triple para carbonatación 10%, presión 25 psi y rapidez 200 bpm.
+
+```{r}
+mo[1,1,1]-(mg+ec[1]+ep[1]+er[1]+icp+icr+ipr)
+ec
+ep
+er
+
+mo[1,1,1]
+```
+
+### Estime un modelo con interacción triple usando aov y extraiga los efectos de interacción triple. Obtenga la suma de cuadrados de interacción triple.
+
+```{r}
+modci=aov(desvabs~carbonatacion*presion*rapidez,data = base)
+modci$coefficients
+a=model.tables(modci)
+scintt=sum(2*a$tables$`carbonatacion:presion:rapidez`^2)
+```
+
+##  Obtenga los grados de libertad de la interacción triple
+
+```{r}
+(2-1)*(2-1)*(3-1)
+```
+2
+
+## Obtenga el cuadrado medio correspondiente y explique qué mide esta cantidad
+
+```{r}
+scintt/2
+scintt
+```
+
+## (h) Obtenga el análisis de varianza.
+
+```{r}
+anova(modci)
+```
+
+### Compare el CMTri con el CMRes para poner a prueba si la hipótesis nula de no interacción triple es factible. Concluya
+
+Son iguales, F es igual a 1 
+
+```{r}
+pf(1,2,12,lower.tail = F)
+```
+
+# 4. Análisis sin interacción triple:
+
+
+## ) Asuma que no existe interacción triple y estime el modelo correspondiente bajo la restricción de suma nula. Elimine las interacciones que no son significativas para lo cual debe hacerlo paso a paso. Primero elimine la interacción que es menos significativa. En este proceso de eliminación es más seguro usar la función drop1 con el argumento test="F", la cual es equivalente a comparar el modelo completo con un modelo que elimina un término a la vez. Es útil usar esta función especialmente cuando el diseño no es balanceado o cuando se incluyen covariables (lo cual se verá más adelante). Estime el nuevo modelo reducido, obtenga los coeficientes y vea a qué corresponde cada uno.
+
+```{r}
+drop1(modci,test = "F")
+mod2=aov(desvabs~carbonatacion*presion+carbonatacion*rapidez+rapidez*presion,data = base)
+
+drop1(mod2,test = "F")
+mod2=aov(desvabs~carbonatacion*presion+rapidez*presion,data = base)
+drop1(mod2,test = "F")
+
+mod2=aov(desvabs~carbonatacion+rapidez*presion,data = base)
+drop1(mod2,test = "F")
+
+anova(mod2)
+```
+
+Queda el modelo con interacción entre rapidez y presion. 
+
+
+## Obtenga los coeficientes del modelo simplificado y vea a qué corresponde cada uno de ellos. Obtenga las estimaciones de la media marginal para los niveles de carbonatación.
+
+```{r}
+coef=mod2$coefficients;coef
+
+vc1=c(1,1,0,0,0,0)
+vc2=c(1,0,1,0,0,0)
+vc3=c(c(1,-1,-1,0,0,0))
+
+coef%*%vc1
+coef%*%vc2
+coef%*%vc3
+
+
+```
+
+## Compare las estimaciones obtenidas con el modelo para las medias marginales de carbonatación con las medias observadas obtenidas previamente.
+
+```{r}
+mc
+```
+
+Son iguales. 
+
+## Cree los vectores que deben multiplicar los coeficientes del modelo para calcular las medias marginales de los diferentes niveles de carbonatación.
+
+```{r}
+vc1=c(1,1,0,0,0,0)
+vc2=c(1,0,1,0,0,0)
+vc3=c(1,-1,-1,0,0,0)
+```
+
+## Obtenga estimaciones de los promedios usando estos vectores y compárelos con los obtenidos anteriormente.
+
+
+Son iguales. 
+
+## Escriba los contrastes para comparar las medias de los tres niveles de carbonatación y obtenga una estimación de la diferencia de los promedios por pares
+
+
+$$
+\mu_{1**}=\mu_{2**}
+$$
+
+$$
+\mu_{1**}=\mu_{3**}
+$$
+
+$$
+\mu_{2**}=\mu_{3**}
+$$
+
+Entonces los contrastes son: 
+
+$$
+\mu_{1**}-\mu_{2**}=0
+$$
+
+$$
+\mu_{1**}-\mu_{3**}=0
+$$
+
+$$
+\mu_{2**}-\mu_{3**}=0
+$$
+
+Para estimar las diferencias puedo hacerlo así
+
+```{r}
+mc
+```
+
+Voy a acomodarlos de forma que siempre sean positivos
+
+```{r}
+vd12=c(1,0,1,0,0,0)-c(1,1,0,0,0,0)
+vd13=c(1,-1,-1,0,0,0)-c(1,1,0,0,0,0)
+vd23=c(1,-1,-1,0,0,0)-c(1,0,1,0,0,0)
+
+d12=coef%*%vd12;d12
+d13=coef%*%vd13;d13
+d23=coef%*%vd23;d23
+
+```
+
+## Escriba las hipótesis asociadas a esos contrastes y verifique si son ortogonales
+
+
+$$
+H0:\mu_{1**}=\mu_{2**}
+$$
+
+$$
+H0:\mu_{1**}=\mu_{3**}
+$$
+
+$$
+H0:\mu_{2**}=\mu_{3**}
+$$
+
+Alternativas
+
+$$
+H0:\mu_{1**}<>\mu_{2**}
+$$
+
+$$
+H0:\mu_{1**}<>\mu_{3**}
+$$
+
+$$
+H0:\mu_{2**}<>\mu_{3**}
+$$
+
+```{r}
+vd12%*%vd13
+vd13%*%vd23
+vd12%*%vd23
+```
+
+No son ortogonales (Era de esperar)
+
+## Lleve a cabo las pruebas de las hipótesis para estos contrastes.
+
+Primero necesito el error estándar 
+
+```{r}
+ee12=sqrt(t(vd12)%*%vcov(mod2)%*%vd12)
+ee13=sqrt(t(vd13)%*%vcov(mod2)%*%vd13)
+ee23=sqrt(t(vd23)%*%vcov(mod2)%*%vd23)
+
+ee12;ee13;ee23
+```
+
+
+Ahora el estadístico t
+
+```{r}
+t12=d12/ee12;t12
+t13=d13/ee13;t13
+t23=d23/ee23;t23
+
+
+```
+
+Y por último la probabilidad asociada. Debe de compararse con 0.05/3
+
+```{r}
+0.05/3
+ptukey(t12*sqrt(2),3,18,lower.tail = F)
+ptukey(t13*sqrt(2),3,18,lower.tail = F)
+ptukey(t23*sqrt(2),3,18,lower.tail = F)
+
+```
+
+Las dos ultimas hipótesis se rechazan 
+
+## Verifique que todos los errores estándar coinciden con el obtenido a partir de la fórmula clásica para la varianza de una diferencia de promedios: V(y¯i −y¯j) = 2CMRes/r
+
+```{r}
+anova(mod2)
+sqrt((2*0.625)/8)
+
+```
+
+Si coinciden. 
+
+## Considerando que hay interacción entre presión y rapidez, haga las comparaciones entre las medias de los dos niveles de presión para cada nivel de rapidez. Primero verifique si los contrastes de las hipótesis son ortogonales
+
+Fijo la rapidez en 200
+
+Entonces tengo que 
+
+$$
+H0: \mu_{*11}=\mu_{*21}
+$$
+$$
+H1: \mu_{*11}<>\mu_{*21}
+$$
+El contraste 
+
+$$
+\mu_{*11}-\mu_{*21}
+$$
+
+Para el nivel de rapidez 250 
+
+$$
+H0: \mu_{*12}=\mu_{*22}
+$$
+
+$$
+H1: \mu_{*12}<>\mu_{*22}
+$$
+
+El contraste 
+
+$$
+\mu_{*12}-\mu_{*22}
+$$
+
+
+Los vectores para calcular las medias 
+
+
+```{r}
+coef
+v.11=c(1,0,0,1,1,1)
+v.21=c(1,0,0,1,-1,-1)
+v.12=c(1,0,0,-1,1,-1)
+v.22=c(1,0,0,-1,-1,1)
+
+d.1=v.21-v.11
+d.2=v.22-v.12
+
+
+
+d.1%*%d.2 ## Son ortogonales 
+
+l.1=coef%*%d.1
+l.1
+l.2=coef%*%d.2
+l.2
+```
+
+El error estándar 
+
+```{r}
+ee.11=sqrt(t(d.1)%*%vcov(mod2)%*%d.1)
+ee.12=sqrt(t(d.2)%*%vcov(mod2)%*%d.2)
+```
+
+El estadístico t  
+
+```{r}
+t.11=l.1/ee.11
+t.11
+
+t.12=l.2/ee.12
+t.12
+```
+
+Y la probabilidad asociada 
+
+```{r}
+pt(t.11,18,lower.tail = F)
+pt(t.12,18,lower.tail = F)
+
+```
+
+## Ahora haga las comparaciones en sentido inverso, es decir, compare entre las medias de los dos niveles de rapidez para cada nivel de presión. Primero verifique si los contrastes de las hipótesis son ortogonales.
+
+Para el nivel de presion 25
+
+$$
+\mu_{11}-\mu_{12}
+$$
+
+Para presion 30 
+
+$$
+\mu_{21}-\mu_{22}
+$$
+
+Los contrastes
+
+```{r}
+coef
+hr1=c(1,0,0,-1,1,-1)-c(1,0,0,1,1,1)
+hr2=c(1,0,0,-1,-1,1)-c(1,0,0,1,-1,-1)
+
+hr1%*%hr2 ## Son ortogonales 
+
+lr1=hr1%*%coef;lr1
+lr2=hr2%*%coef;lr2
+
+```
+
+Los errores estándar
+
+```{r}
+er1=sqrt(t(hr1)%*%vcov(mod2)%*%hr1)
+er2=sqrt(t(hr2)%*%vcov(mod2)%*%hr2)
+er1
+er2
+```
+
+Los estadísticos t
+
+```{r}
+tr1=lr1/er1;tr1
+tr2=lr2/er2;tr2
+
+```
+
+Y las probabilides asociadas 
+
+```{r}
+pt(tr1,18,lower.tail = F)
+pt(tr2,18,lower.tail = F)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

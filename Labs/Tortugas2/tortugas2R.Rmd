@@ -1,0 +1,499 @@
+---
+title: "Tortugas2"
+author: "Daniel Sibaja Salazar"
+date: "2024-05-25"
+output: html_document
+---
+
+# 1 Preparación 
+
+## Cargue el archivo tortugas2.csv. Verifique que la variable condición sea un factor con los niveles adecuados.
+
+```{r}
+base=read.csv("tortugas2.csv")
+base$especie=as.factor(base$especie)
+base$cond=as.factor(base$cond)
+```
+
+## (b) ¿Cuáles son los factores que se incluyen en el experimento?
+
+Se incluye el factor de especie y de condición de alimento 
+
+## (c) ¿En qué aspectos debe concentrarse el análisis?
+
+En las diferencias entre las especies, las condiciones de alimento y si hay interacción entre ambos 
+
+# Efectos
+
+## (a) Obtenga la media general de la respuesta.
+
+```{r}
+mg=mean(base$proteina);mg
+```
+
+## Obtenga los efectos simples de cada condición, es decir, las diferencias entre cada media de condición y la media general (α1, α2 y α3).
+
+```{r}
+msc=tapply(base$proteina,base$cond,mean);msc
+
+a1=msc[1]-mg;a1
+a2=msc[2]-mg;a2
+a3=msc[3]-mg;a3
+
+```
+
+
+## Obtenga los efectos simples de cada especie (β1 y β2).
+
+```{r}
+mse=tapply(base$proteina,base$especie,mean);mse
+b1=mse[1]-mg;b1
+b2=mse[2]-mg;b2
+```
+
+## Obtenga los promedios observados de los 6 tratamientos.
+
+```{r}
+mo=tapply(base$proteina,list(base$especie,base$cond),mean);mo
+```
+
+## Obtenga manualmente los promedios estimados bajo el modelo sin interacción.
+
+```{r}
+a1b1=mg+a1+b1
+a2b1=mg+a2+b1
+a3b1=mg+a3+b1
+a1b2=mg+a1+b2
+a2b2=mg+a2+b2
+a3b2=mg+a3+b2
+
+mes=rbind(c(a1b1,a2b1,a3b1),c(a1b2,a2b2,a3b2));mes
+```
+
+Los promedios cambian, probablemente se deba al efecto de la interacción
+
+## Obtenga un gráfico de los valores de proteína para interpretar gráficamente si existe interacción entre condición y especie.
+
+```{r}
+library(ggplot2)
+
+ggplot(base,aes(x=especie,y=proteina,group = cond))+
+  stat_summary(fun.y = "mean",geom = "line",aes(linetype = cond))
+```
+
+
+Las diferencias no lucen iguales por especie según condición de alimentación. 
+
+## Visualice en el gráfico las medias estimadas. Compare los promedios observados con los promedios estimados y a partir de ahí obtenga la cantidad que debe sumarse o restarse a cada promedio observado para obtener una estimación que cumpla con el supuesto de independencia
+
+Las diferencias entre los promedios estimados y observados son las siguientes: 
+
+```{r}
+mo-mes
+```
+
+## Obtenga los efectos simples y de interacción usando la función model.tables
+
+```{r}
+mod=aov(proteina~especie*cond,data = base)
+model.tables(mod)
+```
+
+## Compare estos resultados con los obtenidos anteriormente.
+
+Son iguales. 
+
+# Varianza del error:
+
+## Visualice los 6 tratamientos con un gráfico de cajas donde se incluyan los dos factores. 
+
+```{r}
+boxplot(base$proteina~base$especie+base$cond)
+```
+
+Todas las cajas lucen de más o menos el mismo alto, salvo por la de más a la derecha, por lo que se esperaría homocedasticidad. 
+
+Parece que un promedio de proteína es mucho más alto que los demás, comparado con la otra especie y diferente condición de alimento. 
+
+
+## Obtenga las varianzas de los seis tratamientos.
+
+```{r}
+vt=tapply(base$proteina,list(base$especie,base$cond),var);vt
+```
+
+##  Verifique si se cumple el supuesto de homocedasticidad.
+
+```{r}
+bartlett.test(proteina~interaction(especie,cond),data = base)
+```
+
+No se rechaza la hipótesis nula de homocedasticidad. 
+
+
+## Obtenga una medida de la variabilidad del error asumiendo homocedasticidad.
+
+
+Asumiendo igualdad de varianzaS, cualquier varianza de cualquier tratamiento puede ser considerado como una medidad de varaibilidad del error. 
+
+# Estimaciones bajo el modelo con interacción:
+
+## (a) Cambie al modelo de suma nula. Escriba el modelo con lm (llámelo mod2).
+
+```{r}
+options(contrasts = c("contr.sum","contr.poly"))
+mod2=lm(proteina~especie*cond,data = base)
+```
+
+
+## Observe la matriz de estructura usando model.matrix(mod2). Vea a qué corresponde cada columna. Ponga atención a los códigos y relaciónelos con los niveles de cada factor.
+
+```{r}
+model.matrix(mod2)
+```
+
+Corresponden al:
+
+1. Intercepto
+2. especie1
+3. Condicion1 
+4. Condicion2 
+5. la interacción Entre especie 1 y cond 1 
+6. La intewracción entre especie 1 y cond 2
+
+## Extraiga los coeficientes y obtenga efectos simples y de interacción que no aparecen debido a la restricción de suma nula.
+
+```{r}
+coef=mod2$coefficients;coef
+```
+
+Para especie 2
+
+```{r}
+c(0,-1,0,0,0,0)%*%coef
+```
+
+Para cond 3
+
+```{r}
+c(0,0,-1,-1,0,0)%*%coef
+```
+
+Para la interacción 
+
+```{r}
+c(0,0,0,0,-1,-1)%*%coef ## Especie 1 cond 3
+c(0,0,0,0,-1,0)%*%coef ## Especie 2 cond 1
+c(0,0,0,0,0,-1)%*%coef ##Especie 2 cond 2 
+c(0,0,0,0,1,1)%*%coef ##Especie 2 cond 3 
+
+```
+
+## Use los coeficientes y un vector de contrastes para calcular manualmente el promedio de chelonia-estricta
+
+
+```{r}
+coef
+c(1,1,1,0,1,0)%*%coef
+```
+
+## Obtenga el promedio para los otros tratamientos.
+
+```{r}
+c(1,1,1,0,1,0)%*%coef
+c(1,1,0,1,0,1)%*%coef
+c(1,1,-1,-1,-1,-1)%*%coef
+c(1,-1,1,0,-1,0)%*%coef
+c(1,-1,0,1,0,-1)%*%coef
+c(1,-1,-1,-1,1,1)%*%coef
+```
+
+# 5. Hipótesis de independencia:
+
+## Obtenga la tabla de análisis de varianza para probar la hipótesis de independencia entre condición y especie.
+
+```{r}
+anova(mod2)
+```
+
+No hay independecia 
+
+Lo puedo comprobar a mano
+
+```{r}
+r=4
+int=mes-mo;int
+cmint=sum(r*int^2)/((3-1)*(2-1))
+
+cmres=sum((r-1)*vt)/(24-6)
+
+f=cmint/cmres;f
+pf(f,2,18,lower.tail = F)
+```
+
+## Escriba la hipótesis nula con símbolos y con palabras.
+
+El promedio de un factor es independiente del nivel del otro factor en el que se esté observando 
+
+Los efectos de interacción son iguales a 0 
+
+$$
+H0: (\alpha \beta)_{ij}=0
+$$
+
+## Observe el cuadrado medio residual y compárelo con la estimación de la varianza del error obtenida más arriba. Interprete qué significa el cuadrado medio residual
+
+```{r}
+cmres
+```
+
+Son diferentes, es mejor estimar con el CMRES 
+
+Es la variabilidad dentro los tratamientos
+
+
+##  Obtenga los grados de libertad de cada fuente de variación y justifíquelos.
+
+```{r}
+anova(mod2)[,1]
+anova(mod2)
+```
+
+Los grados de libertad se calculan así 
+
+- Para el factor 1= (a-1)
+- Para el factor 2= (b-1)
+- Para la interacción= (a-1)*(b-1)
+- Para los residuales= n-k (PREGUNTAR)
+
+
+## Interprete qué se está midiendo con el cuadrado medio de condición y el cuadrado medio de especie
+
+La variación entre los nivels de A y los niveles de B respectivamente. 
+
+## Asegúrese que puede obtener estas cantidades a partir de los efectosc simples.
+
+```{r}
+sum(8*c(a1,a2,a3)^2)/2
+sum(12*c(b1,b2)^2)/1
+```
+
+## A partir de las estimaciones de los efectos de la interacción verifique la suma de cuadrados de interacción.
+
+```{r}
+sum(r*int^2)
+```
+
+## Interprete qué se está midiendo con el cuadrado medio de interacción.
+
+Es una medida general de los efectos de interacción en cada tratamiento
+
+## Obtenga el valor F asociado a la hipótesis establecida, obtenga la probabilidad asociada y concluya
+
+
+Lo hice arriba
+
+# Comparaciones bajo el modelo con interacción:
+
+## Puesto que se ha encontrado que sí hay una interacción importante entre la condición y la especie, ahora hay que investigar cómo actúan las condiciones en cada especie. Escriba el modelo con interacción y escriba los contrastes para comparar las condiciones dentro de cada especie
+
+$$
+\mu_{ij}^{CI}=\mu+\alpha_i+\beta_i+(\alpha \beta)_{ij}
+$$
+
+Donde:
+
+- $\mu$ es la media general
+- $\alpha_i$ es el efecto del nivel i en el tratamiento A
+- $\beta_j$ es el efecto del nivel j en el tratamiento B 
+- $(\alpha \beta)_{ij}$ es el efecto de interacción.
+
+En este caso puedo fijar la especie y hacerlo para cada nivel de condición
+
+
+```{r}
+coef
+```
+
+Para la especie 1 
+
+mu11-mu21
+mu11-mu31
+mu21-mu31
+
+Para la especie 2
+
+mu12-mu22
+mu12-mu32
+mu22-mu32
+
+
+## Verifique que los 3 contrastes dentro de cada especie no son ortogonales, pero que cada bloque de 3 contrastes es ortogonal al otro bloque.
+
+v1=c(1,1,1,0,1,0)-c(1,1,0,1,0,1)
+v2=c(1,1,1,0,1,0)-c(1,1,-1,-1,-1,-1)
+v3=c(1,1,0,1,0,1)-c(1,1,-1,-1,-1,-1)
+
+v4=c(1,-1,1,0,-1,0)-c(1,-1,0,1,0,-1)
+v5=c(1,-1,1,0,-1,0)-c(1,-1,-1,-1,1,1)
+v6=c(1,-1,0,1,0,-1)-c(1,-1,-1,-1,1,1)
+
+```{r}
+mo
+```
+
+
+```{r}
+
+
+v1=c(1,1,0,1,0,1)-c(1,1,1,0,1,0)
+v2=c(1,1,-1,-1,-1,-1)-c(1,1,1,0,1,0)
+v3=c(1,1,0,1,0,1)-c(1,1,-1,-1,-1,-1)
+
+v1%*%v2
+v1%*%v3
+v2%*%v3
+
+
+v4=c(1,-1,0,1,0,-1)-c(1,-1,1,0,-1,0)
+v5=c(1,-1,-1,-1,1,1)-c(1,-1,1,0,-1,0)
+v6=c(1,-1,-1,-1,1,1)-c(1,-1,0,1,0,-1)
+
+v4%*%v5
+v4%*%v6
+v5%*%v6
+
+
+v1%*%v4
+v1%*%v5
+v1%*%v6
+
+v2%*%v4
+v2%*%v5
+v2%*%v6
+
+v3%*%v4
+v3%*%v5
+v3%*%v6
+```
+
+## Escriba una matriz que permita el cálculo de los contrastes
+
+```{r}
+mat=rbind(v1,v2,v3,v4,v5,v6)
+mat=as.matrix(mat)
+```
+
+## Estime cada contraste y su varianza.
+
+```{r}
+l1=v1%*%coef;l1
+ee1=sqrt(t(v1)%*%vcov(mod2)%*%v1);ee1
+
+l2=v2%*%coef;l2
+ee2=sqrt(t(v2)%*%vcov(mod2)%*%v2);ee2
+
+l3=v3%*%coef;l3
+ee3=sqrt((v3)%*%vcov(mod2)%*%v3);ee3
+
+l4=v4%*%coef;l4
+ee4=sqrt(t(v4)%*%vcov(mod2)%*%v4);ee4
+
+l5=v5%*%coef;l5
+ee5=sqrt(t(v5)%*%vcov(mod2)%*%v5);ee5
+
+l6=v6%*%coef;l6
+ee6=sqrt(t(v6)%*%vcov(mod2)%*%v6);ee6
+```
+
+## Pruebe de forma simultánea las hipótesis que establecen que cada contraste es igual a cero. Puesto que los contrastes no son ortogonales debe usarse la corrección de Bonferroni, es decir, dividir el nivel de significancia por el número de comparaciones.
+
+Pregunta:Por qué no usar Tukey?
+
+```{r}
+t1=l1/ee1;t1
+t2=l2/ee2;t2
+t3=l3/ee3;t3
+t4=l4/ee4;t4
+t5=l5/ee5;t5
+t6=l6/ee6;t6
+
+t1
+
+pt(t1,18,lower.tail = F)
+pt(t2,18,lower.tail = F)
+pt(t3,18,lower.tail = F)
+pt(t4,18,lower.tail = F)
+pt(t5,18,lower.tail = F)
+pt(t6,18,lower.tail = F)
+
+```
+
+Todas se rechazan a excepcion de 1 (t5)
+
+##  Obtenga las cotas inferiores que permitan cuantificar las diferencias que son significativas.
+
+Necesito una t 
+
+```{r}
+tt1=qt(1-(0.05/3),18)
+tt2=qt(1-(0.05/2),18)
+
+```
+
+Ahora las cotas 
+
+```{r}
+l1-tt1*ee1
+l2-tt1*ee2
+l3-tt1*ee3
+
+l5-tt2*ee5
+l6-tt2*ee6
+```
+
+## La función emmeans de la librería con el mismo nombre se puede utilizar para realizar las comparaciones múltiples de forma automática.
+
+```{r}
+library(emmeans)
+
+em=emmeans(mod2,pairwise~cond|especie,adjust="bonferroni")
+em$contrasts
+```
+
+## Si se quieren obtener las mismas probabilidades del punto 
+
+```{r}
+pt(t1,18,lower.tail = F)*6
+pt(t2,18,lower.tail = F)*6
+pt(t3,18,lower.tail = F)*6
+pt(t4,18,lower.tail = F)*6
+pt(t5,18,lower.tail = F)*6
+pt(t6,18,lower.tail = F)*6
+```
+
+## Una vez que se ha aplicado emmeans, se pueden obtener intervalos de confianza. 
+
+```{r}
+confint(em)
+```
+
+## ¿Qué se concluye?
+
+Se concluye exactamente lo mismo que hecho a pie. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

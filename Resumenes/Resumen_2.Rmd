@@ -189,14 +189,24 @@ Con o sin interacción debería cambiar, no necesariamente debe de ser mayor o m
 Cuando no se usa interacción (porque no se rechaza la hipótesis) los grados de libertad aumentan y esto puede llevarnos a una mejor estimación.
 
 $$
-CMRes=\frac{\sum_i\sum_j(r_{ij-1})s^2_{ij}}{n-k}
-$$ donde:
+CMRes=\frac{\sum_i\sum_j(r_{ij}-1)s^2_{ij}}{n-k}
+$$
+
+
+donde:
 
 -   n= tamaño de muestra total
 -   k= número de tratamientos
 -   $r_{ij}$= Réplicas por tratamiento
 
 Este valor es deseable que sea pequeñito.
+
+
+Para el caso sin interacción la SCRes cambia un poco. 
+
+$$
+CMRes^{SI}=\frac{SCInt+SCRes^{CI}}{(a-1)(b-1)+(n-ab)}
+$$
 
 # Análisis de Varianza.
 
@@ -322,6 +332,24 @@ $$ Entonces tenemos dos situaciones:
     -   Por supuesto, puedo calcular las medias marginales con vectores y el vector de coeficientes del modelo
 
     -   Para calcular la resta de mu1 con mu2, también puedo hacerlo restando los vectores.
+
+### EMMEANS
+
+Se pueden hacer automáticamente con la librería emmeans 
+
+En este caso, puesto que hay interacción, debe indicarse que se
+hacen las comparaciones para los promedios de A dentro de cada
+nivel de B, y se pide que se use la corrección de Boferroni de
+la siguiente forma: emmeans(mod, pairwise~A|B, adjust="bonferroni")
+
+Las probabilidades de la salida de esta función se deben de interpretar distinto
+
+2alpha si son de una cola y alphas si es de dos colas. 
+
+Estas probabilidades no son las mismas que se obtienen a mano. 
+
+Si se quieren obtener las mismas probabilidades del punto (e), las
+probabilidades de la salidad de emmeans deben dividirse por la cantidad de grupos*cantidad de comparaciones, o las obtenidas a mano deben de multiplicarse por este mismo valor.  
 
 ## Ejemplo del modelo sin interacción
 

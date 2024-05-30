@@ -1,103 +1,419 @@
 ---
 title: "Tortugas1"
 author: "Daniel Sibaja Salazar"
-date: "2024-05-13"
+date: "2024-05-24"
 output: html_document
 ---
 
-# Preparacion 
 
-a. cargar y verificar.
+# 1 Preparación 
+
+## a
 
 ```{r}
 base=read.csv("tortugas1.csv")
 base$genero=as.factor(base$genero)
 base$cond=as.factor(base$cond)
-str(base$genero)
-str(base$cond)
-levels(base$genero)=c("Macho","Hembra")
 ```
 
-b. Los factores son el género de la tortuga y el tipo de dieta.
+## b
 
-c. Los factores, el de género no se puede aleatorizar por lo cual, el otro sí y se trata de darles una dieta distinta, el alcance se limita a tortugas de la especie Chelonia Midas
+Se incluyen dos factores: condición de alimentación y género. 
 
-d. En los efectos del género y de la dieta en el nivel de proteína únicamente, cualquier otra cosa está demás y fuera de nuestro control. 
+## c
 
-e. 4, porque cada factor tiene dos niveles. 
+Se trata de un experimento cuyas conclusiones se limitan a la especie Chelonia Midas, un factor no se puede asignar aleatoriamente por lo que es un diseño cuasiexperimental. El factor de condición si se puede aleatorizar. 
 
-f. Verifique las réplicas 
+
+## d 
+
+En las diferencias por género y condición de alimentación y en si estos factores tienen interacción o no. 
+
+## e
+
+4 tratamientos. 
+
+## f
 
 ```{r}
 table(base$genero,base$cond)
 ```
 
-Son 4 por tratamiento. 
+4 réplicas por tratamiento. 
+
 
 # Efectos 
 
-a. Media general 
+## a
 
 ```{r}
 mg=mean(base$proteina);mg
-
 ```
 
-b. efectos simples de cada condición 
+## b
 
 ```{r}
-mc1=tapply(base$proteina,base$cond,mean)[1];mc1
-mc2=tapply(base$proteina,base$cond,mean)[2];mc2
-
-
-a1=mc1-mg;a1
-a2=mc2-mg;a2
+ma=tapply(base$proteina,base$cond,mean);ma
+a1=ma[1]-mg;a1
+a2=ma[2]-mg;a2
 ```
 
-c. efectos simples de genero 
+## c
 
 ```{r}
-mge1=tapply(base$proteina,base$genero,mean)[1];mge1
-mge2=tapply(base$proteina,base$genero,mean)[2];mge2
+ms=tapply(base$proteina,base$genero,mean);ms
+b1=ms[1]-mg;b1
+b2=ms[2]-mg;b2
 
-b1=mge1-mg;b1
-b2=mge2-mg;b2
 ```
 
-d. Promedios observados de los 4 tratamientos 
+## d
 
 ```{r}
-tapply(base$proteina,list(base$genero,base$cond),mean)
+mo=tapply(base$proteina,list(base$genero,base$cond),mean);mo
 ```
 
-e. Promedios estimados sin interacción 
+## e
 
 ```{r}
-t11=mg+a1+b1;t11
-t21=mg+a2+b1;t21
-t12=mg+a1+b2;t12
-t22=mg+a2+b2;t22
-
+ali1=mg+a1+b1;ali1
+ali2=mg+a1+b2;ali2
+die1=mg+a2+b1;die1
+die2=mg+a2+b2;die2
 ```
 
-f. Comparelos 
+## f 
 
-Algunos aumentan, otros disminuyen pero muy poco, seguramente se debe a un efecto de interacción bajo
+Los promedios cambian un poco debido a que no tomamos en cuenta la interacción. 
 
-g. Obtenga un gráfico
+## g
 
 ```{r}
 library(ggplot2)
+
 ggplot(base,aes(x=genero,y=proteina,group = cond))+
   stat_summary(fun.y = "mean",geom = "line",aes(linetype = cond))
 ```
 
-h. No se nota mucho la diferencia en promedios cuando es macho y en alimento y dieta que cuando es hembra en los mismo niveles del factor A. 
+## h
 
-i. Efectos simples
+Las distancias lucen iguales para cada género. Por lo que parece que no hay interacción. 
+
+## i 
 
 ```{r}
-mod=aov(base$proteina~base$cond+base$genero)
+mod=aov(proteina~cond+genero,data = base)
+
 model.tables(mod)
 ```
+
+Coinciden con lo calculado anteriormente. 
+
+
+# Efectos de interacción del modelo. 
+
+## Escriba el modelo con interacción utilizando lm (llámelo mod2). Cambie al modelo de suma nula.
+
+```{r}
+options(contrasts=c("contr.sum","contr.poly"))
+mod2=lm(proteina~cond*genero,data = base)
+```
+
+
+## Observe la matriz de estructura usando model.matrix(mod2). Vea a qué corresponde cada columna.
+
+```{r}
+model.matrix(mod2)
+```
+
+Tenemos 4 columnas:
+
+1. El intercepto. 
+2. El alimento, 1 si es alimento -1 si es dieta. 
+3. El género 1 si es macho -1 si es hembra.
+4. Y la interacción 
+
+
+## Extraiga los coeficientes. Observe el efecto de la interacción.
+
+```{r}
+coef(mod2)
+```
+
+Representa el efecto de la interacción entre el nivel 1 de genero y el nivel 1 de alimento. 
+
+# Varianza del error:
+
+## Visualice los 4 tratamientos con un gráfico de cajas
+
+```{r}
+boxplot(proteina~cond+genero,data = base)
+```
+
+Las cajas luce de aproximadamente el mismo alto por lo que sería esperable que haya igualdad de varianzas. 
+
+Parece que no se puede esperar interacción. 
+
+## Obtenga las varianzas de los 4 tratamientos.
+
+```{r}
+vt=tapply(base$proteina,list(base$cond,base$genero),var);vt
+```
+
+## Verifique si se cumple el supuesto de homocedasticidad
+
+```{r}
+bartlett.test(base$proteina~interaction(base$cond,base$genero))
+```
+
+Si se puede esperar homocedasticidad, pues no hay suficiente evidencia estadística para rechazar la hipótesis nula de iguald de varianzas. 
+
+## Obtenga una medida de la variabilidad del error asumiendo homocedasticidad.
+
+Asumiendo Homocedasticidad basta con escoger cualquier tratamientio y calcularle la varianza
+
+Por ejemplo 6.522500. Como asum homocedasticidad asumo que todas son iguales. 
+
+
+# 5. Prueba de hipótesis para la interacción:
+
+## Obtenga la tabla de análisis de varianza para probar la hipótesis de NO interacción entre condición y género.
+
+
+```{r}
+anova1=anova(mod2);anova1
+```
+
+```{r}
+r=4
+vt
+n=16
+k=4
+
+sum((r-1)*vt)/(n-4)
+```
+
+
+## Escriba la hipótesis nula que interesa probar con símbolos y con palabras.
+
+Con palabras la hipótesis nula es que el efecto de interacción es 0. 
+
+$$
+H0: (\alpha \beta)_{ij}=0
+$$
+## Observe el cuadrado medio residual y compárelo con la estimación de la varianza del error
+
+```{r}
+anova1[4,3]
+```
+
+Habíamos estimado que es 6.522500, está cerca. El CMRes es una forma más adecuada de estimar la varianza del error, ya que aunque asumimos Homocedasticidad es más adecuado aún así tomar en cuenta la variabilidad de todos los tratamientos y no solo uno a ciegas. 
+
+## Interprete qué se está midiendo con el cuadrado medio de interacción.
+
+
+```{r}
+anova1[3,3]
+```
+
+Mide la magnitud general de los efectos de interacción. 
+
+
+## Observe en la columna de F el valor asociado a la hipótesis y explique de dónde sale.
+
+```{r}
+anova1[,c(1,4)]
+```
+
+ Se obtiene dividiendo el CMInt entre el CMRes 
+
+```{r}
+anova1
+0.181/7.537           
+```
+
+## (f) Observe la probabilidad asociada y explique cómo se obtiene. Concluya.
+
+```{r}
+anova1[,c(1,4,5)]
+```
+
+Se obtiene calculando la probabilidad de encontrar un valor igual o mayor que F en una distribución F con los grados de libertad de interacción y los grados de libertad residuales. 
+
+```{r}
+pf(0.0240,1,12, lower.tail = F)
+```
+
+# 6. Estimaciones bajo el modelo sin interacción:
+
+## Escriba el modelo sin interacción con lm y llámelo mod3.
+
+```{r}
+mod3=lm(proteina~cond+genero,data = base)
+```
+
+## ¿Cuánto es el efecto simple de cada condición y cada género? ¿Cómo se interpretan?
+
+```{r}
+a1;a2;b1;b2
+
+coef(mod3)
+```
+
+- 1.55 para alimento, quiere decir que aumenta el promedio de proteína en 1.55
+- -1.55 para dieta, quiere decir que disminuye el promedio de proteína en 1.55
+- 1.92 para macho, aumenta el promedio de proteína en 1.92.
+- -1.92 para hembra, aumenta el promedio de proteína en 1.92.
+
+## Escriba la hipótesis que interesa probar con símbolos y con palabras.
+
+Hay dos hipótesis por probar. 
+
+- Si los promedios de condicion son iguales. 
+- Si los promedios de género son iguales.
+
+$$
+H0:\mu_1.=\mu_2.
+$$
+
+$$
+H0:\mu_{.1}=\mu_{.2}
+$$
+
+## Interprete qué se está midiendo con el cuadrado medio de condición y cuadrado medio de género.
+
+Se está midiendo la variabilidad entre los niveles de cada factor.  
+
+```{r}
+anova2=anova(mod3);anova2
+anova1
+```
+
+
+
+## Asegúrese que puede obtener estas cantidades a partir de los efectos simples.
+
+```{r}
+r=4*2
+a=c(a1,a2)
+cmf1=sum(r*a^2)/1;cmf1
+b=c(b1,b2)
+cmf2=sum(r*b^2)/1;cmf2
+
+```
+
+##  Observe el cuadrado medio residual y compárelo con la estimación de la varianza obtenida a partir de la media de las varianzas de los 4 tratamientos. ¿Por qué no son iguales?
+
+```{r}
+anova2[3,3]
+mean(vt)
+```
+
+No son iguales porque la medida de la varianza calculada con los promedios se calcula con un modelo con interacción 
+
+
+##  Observe en cuánto aumentó la suma de cuadrados residual en el mod3 con respecto a la que se obtuvo en el mod2. Explique por qué tiene sentido que el mod3 tenga una mayor suma de cuadrados residual y por qué la diferencia debe ser esa cantidad
+
+
+```{r}
+anova1[4,2]
+anova2[3,2]
+anova1
+```
+
+Tiene sentido porque se le añade la suma de cuadrados de los efectos del bloque, que es la cantidad en la que aumentó, 0.181
+
+
+##  Observe en la columna de F el valor asociado a la hipótesis y concluya.
+
+```{r}
+anova2[,c(1,4,5)]
+```
+
+Se rechazan ambas hipótesis. 
+
+## Debido a que se concluyó que sí hay diferencia en las medias de proteína según condición, vale la pena establecer una cota inferior para la magnitud de esa diferencia
+
+Debido a que no hay interacción, puedo analizarlos independientemente
+
+Tengo las hipótesis 
+
+$$
+H0: \mu_{1.}=\mu_{2.}
+$$
+
+$$
+H0: \mu_{.1}=\mu_{.2}
+$$
+
+Por lo que los contrastes son:
+
+$$
+H0: \mu_{1.}-\mu_{2.}=0
+$$
+
+
+
+$$
+H0: \mu_{.1}-\mu_{.2}=0
+$$
+
+Tampoco hay que olvidar que tengo que usar las medias marginales de cada factor que no estoy tomando en cuenta en ese momento ]
+
+```{r}
+c=coef(mod3);c
+```
+
+
+Tengo los vectores 
+
+v1=c(1,1,0)
+v2=c(1,-1,0)
+v3=c(1,0,1)
+v4=c(1,0,-1)
+
+```{r}
+v1=c(1,1,0)
+v2=c(1,-1,0)
+v3=c(1,0,1)
+v4=c(1,0,-1)
+
+dif1=v1-v2;dif1
+dif2=v3-v4;dif2
+```
+
+Los contrastes 
+
+```{r}
+l1=c%*%dif1;l1
+l2=c%*%dif2;l2
+
+```
+
+El error estándar 
+
+```{r}
+ee1=sqrt(t(dif1)%*%vcov(mod3)%*%dif1);ee1
+ee2=sqrt(t(dif2)%*%vcov(mod3)%*%dif2);ee2
+
+```
+
+
+La t
+
+```{r}
+t=qt(1-0.05,df=13,lower.tail = T);t
+```
+
+
+```{r}
+l1-t*ee1
+l2-t*ee2
+```
+
+
+
+
+
+
 

@@ -1,0 +1,169 @@
+---
+title: "Burbujas"
+author: "Daniel Sibaja Salazar"
+date: "2024-05-30"
+output: html_document
+---
+
+# Preparación 
+
+## Cargue el archivo burbujas.Rdata
+
+```{r}
+load("burbujas.Rdata")
+```
+
+## Asegúrese que en todas las bases se han definido adecuadamente los factores glicerina, agua y nivel. 
+
+
+```{r}
+str(base1)
+base1$glicerina=as.factor(base1$glicerina)
+base1$persona=as.factor(base1$persona)
+
+str(base2)
+base2$glicerina=as.factor(base2$glicerina)
+base2$persona=as.factor(base2$persona)
+
+
+str(base3)
+base3$glicerina=as.factor(base3$glicerina)
+base3$persona=as.factor(base3$persona)
+base3$nivel=as.factor(base3$nivel)
+
+```
+
+# Visualización de datos con glicerina 
+
+## Realice la visualización usando base1
+
+
+```{r}
+library(ggplot2)
+
+ggplot(base1,aes(x=persona,y=tiempo,group = glicerina))+
+  stat_summary(fun = "mean",geom = "line",aes(linetype = glicerina))
+```
+
+
+
+## Observe si se puede esperar que haya diferencia entre las medias de los tratamientos.
+
+Parece que la línea de glicerina 120 es mayor que la glicerina 60, sin embargo, parece que hay personas con valores más altos que los demás en ambos tratamientos y podría deberse al efecto del bloque. 
+
+## Observe si hay alguna tendencia de valores más altos o más bajos para ciertas personas
+
+Si, la persona 6 por ejemplo tiene los valores más altos de todos y la persona 6 los más bajos. 
+
+## ¿Se observa interacción entre glicerina y persona?
+
+Parece que en la persona 3 pero eso no debería de preocuparnos. 
+
+## ¿Se podría verificar la hipótesis de no interacción?
+
+No. 
+
+## Centre los datos de tiempo dentro de cada persona, es decir, se quiere quitar el efecto del bloque restando la media del bloque al que una observación pertenece.
+
+```{r}
+modc=lm(tiempo~persona,data = base1)
+fit=modc$fit
+
+cent=base1$tiempo-fit+mean(base1$tiempo)
+
+```
+
+## Haga dos gráficos para ver la variabilidad del tiempo en los 2 niveles de glicerina: 1) use los datos originales, 2) use los tiempos centrados.
+
+```{r}
+boxplot(tiempo~glicerina,data = base1)
+boxplot(cent~base1$glicerina,data = base1)
+```
+
+
+## Observe la variabilidad de los residuales en ambos gráficos. ¿A qué se deben las diferencias?
+
+Se debe a que en uno tenemos la variabilidad de los bloques y en otra no la tenemos. Quiere decir que los bloques meten variabilidad. 
+
+# 3. Varianza residual:
+
+## Estime dos modelos: 1) uno incluyendo el factor de diseño y el bloque con el tiempo original como respuesta, 2) otro incluyendo sólo el factor de diseño con el tiempo centrado como respuesta.
+
+```{r}
+mod1=lm(base1$tiempo~base1$glicerina+base1$persona)
+mod2=lm(cent~base1$glicerina)
+```
+
+
+## Compare los análisis de varianza de ambos modelos. Observe la suma de cuadrados total, la suma de cuadrados residual y los grados de libertad de ambos modelos.
+
+```{r}
+anova(mod1)
+anova(mod2)
+```
+
+La suma de cuadrados es la misma, sin embargo los grados de libertad residuales del model sin bloques son el doble. 
+
+
+## (c) ¿Cuál es la forma correcta de obtener la varianza residual?
+
+Tomando en cuenta los bloques. 
+
+## (d) Estime la varianza del error.
+
+Necesito primero la suma de cuadrados de bloque 
+
+```{r}
+mb=tapply(base1$tiempo,base1$persona,mean)
+mg=mean(base1$tiempo)
+scbloque=sum(2*(mb-mg)^2)
+cmbloque=scbloque/5
+vg=tapply(base1$tiempo,base1$glicerina,var)
+cmres=(sum(5*vg)-scbloque)/((12-1)-(2-1+6-1));cmres
+```
+
+## (e) ¿Qué representa esta varianza?
+
+Representa la varianza dentro de los tratamientos una vez eliminado el efecto del bloque.
+
+## Obtenga el valor de F para probar la hipótesis de igualdad de promedios entre los 2 niveles de glicerina. Calcule la probabilidad asociada con los grados de libertad adecuados. Concluya.
+
+Necestio el CMTrat
+
+```{r}
+mt=tapply(base1$tiempo,base1$glicerina,mean)
+cmtrat=(sum(6*(mt-mg)^2))/1
+```
+
+Ahora calculo la F
+
+```{r}
+f=cmtrat/cmres;f
+
+pf(f,1,((12-1)-(2-1+6-1)),lower.tail = F)
+```
+
+Se rechaza la hipótesis de igualdad de medias para los tratamientos de glicerina. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

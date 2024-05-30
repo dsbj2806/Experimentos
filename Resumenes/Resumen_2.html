@@ -1686,8 +1686,9 @@ mayor o menor.</p>
 grados de libertad aumentan y esto puede llevarnos a una mejor
 estimación.</p>
 <p><span class="math display">\[
-CMRes=\frac{\sum_i\sum_j(r_{ij-1})s^2_{ij}}{n-k}
-\]</span> donde:</p>
+CMRes=\frac{\sum_i\sum_j(r_{ij}-1)s^2_{ij}}{n-k}
+\]</span></p>
+<p>donde:</p>
 <ul>
 <li>n= tamaño de muestra total</li>
 <li>k= número de tratamientos</li>
@@ -1695,6 +1696,10 @@ CMRes=\frac{\sum_i\sum_j(r_{ij-1})s^2_{ij}}{n-k}
 tratamiento</li>
 </ul>
 <p>Este valor es deseable que sea pequeñito.</p>
+<p>Para el caso sin interacción la SCRes cambia un poco.</p>
+<p><span class="math display">\[
+CMRes^{SI}=\frac{SCInt+SCRes^{CI}}{(a-1)(b-1)+(n-ab)}
+\]</span></p>
 </div>
 </div>
 <div id="análisis-de-varianza.-1" class="section level1">
@@ -1850,6 +1855,22 @@ el vector de coeficientes del modelo</p></li>
 restando los vectores.</p></li>
 </ul></li>
 </ul>
+<div id="emmeans" class="section level3">
+<h3>EMMEANS</h3>
+<p>Se pueden hacer automáticamente con la librería emmeans</p>
+<p>En este caso, puesto que hay interacción, debe indicarse que se hacen
+las comparaciones para los promedios de A dentro de cada nivel de B, y
+se pide que se use la corrección de Boferroni de la siguiente forma:
+emmeans(mod, pairwise~A|B, adjust=“bonferroni”)</p>
+<p>Las probabilidades de la salida de esta función se deben de
+interpretar distinto</p>
+<p>2alpha si son de una cola y alphas si es de dos colas.</p>
+<p>Estas probabilidades no son las mismas que se obtienen a mano.</p>
+<p>Si se quieren obtener las mismas probabilidades del punto (e), las
+probabilidades de la salidad de emmeans deben dividirse por la cantidad
+de grupos*cantidad de comparaciones, o las obtenidas a mano deben de
+multiplicarse por este mismo valor.</p>
+</div>
 <div id="ejemplo-del-modelo-sin-interacción" class="section level2">
 <h2>Ejemplo del modelo sin interacción</h2>
 <p>En un ejemplo sin interacción, para comparar todos los pares se

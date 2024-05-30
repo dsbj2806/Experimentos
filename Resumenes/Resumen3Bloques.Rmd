@@ -83,7 +83,214 @@ donde:
 
 - j=1,...,a con a tratamientos
 
-- $ \delta \sim N(0,\sigma^2_\delta)$
+- $\delta \sim N(0,\sigma^2_\delta)$
+
+
+# Análisis de varianza con bloques. (Enfoque Clásico)
+
+
+Es lo mismo que hemos hecho en todo el curso, dividir la variabilidad total (Suma de cuadrados total) en diferentes fuentes de variación. 
+
+- Variación *entre* los promedios de un factor.
+- Variación *entre* los promedios de los bloques. 
+- Variación *dentro* de los tratamientos eliminando el efecto del bloque.
+
+
+## Variación entre los promedios de un factor. (CMTrat)
+
+$$
+CMTrat=\frac{\sum b (\bar y_{j*}-\bar y )^2}{a-1}
+$$
+
+Donde:
+
+- $\bar y _{j*}$ Promedio del tratamiento j marginal al bloque. 
+- A: número total de tratamientos.
+- B: Cantidad de bloques.
+
+
+## Variación entre los promedios de los bloques. (CMBloque)
+
+$$
+CMBloque=\frac{\sum a (\bar y_{*k}-\bar y )^2}{b-1}
+$$
+
+Donde:
+
+- $\bar y _{*k}$ Promedio de todas las observaciones dentro del bloque. 
+- A: número total de tratamientos.
+- B: Cantidad de bloques.
+
+
+
+## Variabilidad residual (CMRes)
+
+Ya no es una ponderación directa de las varianzas por tratamiento, ya que primero **debemos eliminar el efecto del bloque en la Suma de Cuadrados**
+
+- En este sentido entonces el CMRes es una mediad de variabilidad dentro de los tratamientos una vez eliminado el bloque. 
+
+$$
+SCRes=[\sum(n_i-1)*S_i^2]-SCBloque
+$$
+
+Tenemos entonces:
+
+- GL: (n-1)-(a-1+b-1)
+- $CMRes: SCRes/gl$
+
+
+**NOTA:** Ya con esto podemos hacer la tabla de análisis de varianza en la que debo de observar la *probabilidad asociada al factor*
+
+## Bloques con un diseño factorial. 
+
+Es posible añadir bloques y más de un factor, simplemente tenemos más cosas que tomar en cuenta. 
+
+- Cuando se analizan varios factores en un mismo experimento y se pueden tener observaciones para cada tratamiento dentro de la misma unidad experimental, esta unidad funciona como bloque.
+- Se debe de aleatorizar la asignación de las unidades de observación dentro de 
+- Tenemos más fuentes de variación. 
+- Se asume que no hay interacción entre el factor y el bloque. 
+- Si se puede análizar la interacción entre los factores. 
+- El tiempo puedo funcionar como un bloque, entonces dentro de cada unidad de tiempo se deben de observar los tratamientos. 
+
+**NOTA:** Es de suma importancia identificar bien los bloques. 
+
+### El modelo de un diseño factorial con bloques. 
+
+$$
+\mu_{jkl}=\mu+\tau_j+\phi_k+\delta_l+(\tau \phi)_{jk}
+$$
+Donde
+
+- $\mu$ es la media general. 
+- $\tau_j$ es el efecto del j-ésimo nivel del factor A 
+- $\phi_k$ es el efecto del k-ésimo nivel del factor B
+- $\delta_l$ es el efecto del l-ésimo bloque. 
+- $(\tau \phi)_{jk}$ es el efecto de interacción entre el factor A y B. 
+
+### Ejemplo de las mariposas
+
+Este ejemplo nos ayuda a comprender que hay veces que el concepto de lo que estamos usando como bloque no es tan claro. En este ejemplo se visitan los árboles más de una vez, entonces el bloque sería el árbol en un momento determinado. 
+
+**NOTA:** En caso de que encontremos que el efecto de los bloques es insignificavo, *NO* se pueden eliminar del modelo, pues el experimento ya fue diseñado de esta forma. 
+
+# Eficiencia Relativa
+
+La pregunta lógica es ¿ha tenido éxito la construcción de bloques? 
+
+- En caso de que la respuesta es sí, quiere decir que es un diseño eficiente y que la SCBloques explica una buena parte de la SCTotal. 
+    - Esto quiere decir que se reduce la SCRes, aumenta el valor de F y aumentando entonces la probabilidad de rechazar la prueba, lo que quiere decir que se mejora la potencia. 
+    
+Para saber si el diseño de bloques es eficiente hay que entonces calcular la *eficiencia relativa*. Para esto se compara un diseño de bloques con un diseño simple al azar. 
+
+Para ello debemos tomar en cuenta que: 
+
+- El número de grados de libertad residuales en un diseño al azar es *n-a* mientras que el de un diseño de bloques es *(n-1)-(a-1+b+1)*, es decir los gl son menores en un DB. 
+
+- Como disminuyen los gl, el valor de F disminuye también, implica que es más difícil rechazar H0 y la potencia disminuye. Por esto es crucial no hacer un bloqueo innecesario. 
+
+- Es razonable pensar que si las medias de los bloques son iguales, entonces el bloqueo no fue necesario. 
+
+- Por esto calculamos la Eficiencia Relativa. 
+
+Pero **¿Qué es la eficiencia?**
+
+La eficiencia de un diseño es el inverso de su varianza residual. 
+
+Entonces la eficiencia relativa fr DB respecto a DA está definida por: 
+
+$$
+EE(DB a DA)=\frac{E(DB)}{E(DA)}=\frac{1/Var(DB)}{1/Var(DA)}=\frac {Var(DA)}{Var(DB)}
+$$
+
+Esto supone que necesitamos la verdadera varianza de ambos diseños, sin embargo las varianzas son desconocidas. Se puede estimar la eficiencia relativa pero tenemos que tomar en cuenta que solo vamos a tener datos del DB. 
+
+La estimación entonces sería la siguiente:
+
+$$
+EER(DB a DA)=\frac{(f_B+1)(f_A+3)CMRes(DA)}{(f_B+3)(f_A+1)CMRes(DB)}
+$$
+
+Donde: 
+
+- $f_A$ y $f_B$ son los grados residuales de cada diseño. 
+
+Pero no contamos con el diseño de Aleatorio, podemos estimarlo mediante: 
+
+$$
+CMRes(DA)= \frac{(b-1)CMBloque+b(a-1)CMRes(DB)}{ba-1}
+$$
+
+Donde= 
+
+- b son los bloques.
+- a los niveles de un factor.
+
+**NOTA:** Para un diseño de dos factores a*=Niveles del factor A x Niveles del factor B 
+
+## Interpretación.
+
+- Se requieren r=bxER réplicas por tratamiento en un Diseño aleatorio para que sea tan efectivo como un diseño de bloques. 
+
+- La ER solo habla de la precisión de las estimaciones y no de la potencia. Por esta razón se recomienda usar un DB mejpr que un DA cuando ER>1.25
+
+
+
+# Bloques Incompletos. 
+
+Hay que recordar que el diseño de bloques requiere inicialmente que haya al menos una observación por tratamiento en cada bloque. 
+
+Sin embargo, hay situaciones en las que no es posible por razones prácticas (O por la razón que sea).
+
+Por ejemplo: 
+
+Si se tienen 7 tratamientos y el bloque es una unidad de tiempo (el día por ejemplo) pero en cada día solo puedo aplicar 7 tratamientos ¿Qué hago?
+
+Asigno solo 6 tratamientos por día pero debo de hacerlo de forma aleatoria. 
+
+Entonces el número de bloques debe de ser tal que se logre un balance, por lo que se recomienda que sea **un múltiplo del número de tratamientos**
+
+
+# Parcelas dividas 
+
+Es un tipo especial del diseño de bloques. En el cual se tienen 2 factores o más. Pero el bloque **solo considera los niveles de uno de los factores**, mientras que el los bloques se clasifican en los niveles del segundo factor. 
+
+Entonces tengo lo siguiente: 
+
+- El factor que clasifica a los bloques es el factor superior o el factor de parecela. 
+
+- El factor cuyos niveles están dentro del bloque es el factor de subparcela. 
+
+- Este tipo de diseño se analiza únicamente mediante el enfoque de modelos mixtos. 
+
+
+
+# En R 
+
+## Centrar los datos. 
+
+modc=lm(y~bloque,data = base)
+fit=modc$fit
+
+rc=base$y-fit+mean(base1$y)
+
+## Gráfico 
+
+library(ggplot2)
+
+ggplot(base1,aes(x=bloque,y=y,group = trat))+
+  stat_summary(fun = "mean",geom = "line",aes(linetype = trat))
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
