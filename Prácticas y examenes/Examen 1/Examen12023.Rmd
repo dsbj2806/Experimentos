@@ -1,0 +1,272 @@
+---
+title: "Examen 1 2023"
+author: "Daniel Sibaja Salazar"
+date: "2024-05-01"
+output: html_document
+---
+# Una barista (especialista en preparación de café) quiere comparar diversas formas de preparar el café y tiene como objetivo determinar el tipo de filtro (papel, tela común, tela gruesa y metal) que produce mayor aroma en promedio. Escogen 5 personas catadoras de café, hacen 3 preparaciones con cada filtro para un total de 12 preparaciones. A cada persona que participa en el estudio se le da a probar las 12 preparaciones identificadas adecuadamente y luego toman el promedio de los 5 catadores para una misma preparación como variable respuesta.
+
+## Justifique por qué es conveniente usar esta variable como respuesta en este experimento
+
+Porque de esta forma es más fácil resumir la información de los catadores y de esa forma obtener una observación que tenga información de la opinión de varias personas y no solo de una, la cual individualmente puede tener un efeto de la subjetividad de la persona. 
+
+## Escriba el modelo de la forma larga, usando la restricción de suma nula. Escriba todos los detalles asociados a este modelo, donde se codifican los filtros de la siguiente forma: Papel= filtro1, Tela común=filtro2, Tela gruesa= filtro 3, Metal= filtro 4
+
+$$
+\mu_j=\mu+c1\tau_1+c2\tau_2+c3\tau_3
+$$
+
+Con la restricción de T4=-(t1+t2+t3)
+
+## A continuación,se dan las estimaciones de los coeficientes del modelo de suma nula, ¿explique qué representa cada una de estas estimaciones?
+
+```{r}
+coef=c(13.75,-0.975,-2.375,2.825)
+names(coef)=c("Intercept","filtro1","filtro2","filtro3")
+coef
+```
+
+El intercepto es el promedio general, los demás son los efectos de su respectivo tratamiento o filtro en este caso, falta el efecto del filtro 4 que tambien puede ser estimado.
+
+## Verifique en primer lugar que los promedios de aroma no son iguales para los 4 filtros. Las variancias de los tratamientos son las siguientes:
+
+
+
+```{r}
+vars=c(1.44,7.84,0.64,1.96)
+names(vars)=c("filtro1","filtro2","filtro3","filtro4")
+vars
+```
+
+Tengo que hacer el ANOVA
+La hipótesis es que todos los promedios son iguales.
+
+Primero el CMRes
+
+```{r}
+scres=sum((3-1)*vars);scres
+cmres=scres/(12-4);cmres
+```
+
+Ahora el CMTrat
+
+Puedo obtener los promedios por tratamiento
+
+```{r}
+t1=c(1,1,0,0)
+t2=c(1,0,1,0)
+t3=c(1,0,0,1)
+t4=c(1,-1,-1,-1)
+
+medias=c(t1%*%coef,t2%*%coef,t3%*%coef,t4%*%coef)
+names(medias)=c("m1","m2","m3","m4");medias
+mg=coef[1]
+
+sctrat=sum(3*(medias-mg)^2);sctrat
+cmtrat=sctrat/3;cmtrat
+```
+
+Hago el anova
+
+```{r}
+f=cmtrat/cmres;f
+1-pf(f,3,8)
+```
+
+Se rechaza la hipótesis nula. 
+
+
+## Se quiere comparar si el aroma promedio obtenido con los filtros tela es diferente del obtenido con los otros dos (metal y papel) , así como analizar si hay diferencias entre los promedios de los 2 filtros de tela y entre los otros 2 filtros. Plantee los contrastes L 1, L2 y L3 y verifique si los contrastes son ortogonales. ¿Qué implica este resultado (ortogonalidad o no) a la hora de poner a prueba las hipótesis asociadas a estos contrastes?
+
+Papel= filtro1, Tela común=filtro2, Tela gruesa= filtro 3, Metal= filtro 4
+
+```{r}
+medias
+```
+
+
+
+$$
+H0: \frac {mu1+mu4}{2}=\frac {mu2+mu3}{2}
+$$
+
+$$
+H0: \mu1=\mu4
+$$
+
+
+
+$$
+H0: \mu2=\mu3
+$$
+
+
+
+Los contrastes 
+
+L1=c(1/2,-1/2,-1/2,1/2)
+L2=c(1,0,0,-1)
+L3=c(0,1,-1,0)
+
+Verifico si son ortogonales.
+```{r}
+L1=c(1/2,-1/2,-1/2,1/2)
+L2=c(1,0,0,-1)
+L3=c(0,1,-1,0)
+
+L1%*%L2
+L1%*%L3
+L2%*%L3
+```
+
+Son ortogonales, esto significa que los contrastes son independientes y por lo tanto no hay que hacer ninguna corrección
+
+## Escriba el vector que permite estimar puntualmente el contraste L1, utilizando los coeficientes estimados del modelo.
+
+Hay que "traducirlo" a suma nula 
+
+Queda así
+
+```{r}
+h1=c(0,0,-1,-1)
+
+lt=h1%*%coef
+```
+
+## Dé una interpretación de la estimación del punto anterior.
+
+Es una estimación de la diferencia de los promedios de los tratamientos que se están calculando. Quiere decir que la diferencia entre ambos promedios se estima en 0.45.
+
+
+## Concluya sobre la hipótesis asociada al contraste L1
+
+Hay que calcular la probabilidad asociada.
+
+Necesito el error estándar.
+
+No tengo la salida del modelo entonces debo de estimar el error estandar distinto
+
+```{r}
+ee=sqrt(cmres*sum((L1**2)/3));ee
+```
+
+Hay que estandarizar el contraste 
+
+```{r}
+to=lt/ee;to
+```
+Y calcular la probabilidad asociada
+
+```{r}
+pt(lt,8)
+```
+
+Se rechaza la hipótesis nula. 
+
+# Pregunta 2
+
+Quedaron dos comparaciones significativas. 
+
+$$
+H0: \mu1=\mu2
+$$
+
+$$
+H0: \mu1=\mu3
+$$
+
+
+
+Los datos recolectados:\
+
+```{r}
+meyer=c(7,7,7,7.1,7,7.1)
+bluetech=c(7.2,7.3,7.4,7.4,7.4,7.6,7.5)
+sl=c(7.1,7.2,7.5,7.4,7.8,8)
+
+y=c(meyer,bluetech,sl)
+f=factor(c(rep("meyer",6),rep("bt",7),rep("sl",6)))
+base=data.frame(y,f)
+
+mm=mean(meyer)
+mbt=mean(bluetech)
+msl=mean(sl)
+
+m=c(mm,mbt,msl);m
+```
+
+
+¿Qué tan relevantes son las diferencias?
+
+Hay que hacer los contrastes 
+
+l1=c(-1,1,0)
+
+l2=c(-1,0,1)
+
+y puedo estimarlos con el vector de medias también ver si hay ortogonalidad 
+
+
+```{r}
+l1=c(-1,1,0)
+l2=c(-1,0,1)
+
+l1%*%l2
+
+lt1=l1%*%m;lt1
+lt2=l2%*%m;lt2
+```
+
+Hay que hacer corrección de Bonferroni 
+
+Se van a hacer las cotas inferiores únicamente 
+
+Necesito el error estándar. Y para eso necesito el CMRes (el experimento no fue balanceado)
+
+
+```{r}
+vars=c(var(meyer),var(bluetech),var(sl))
+r=c(6,7,6)
+scres=sum((r-1)*vars)
+cmres=scres/(19-3)
+
+mod=lm(y~f,data = base)
+anova(mod)
+cmres;anova(mod)[2,3]
+
+vl1=cmres*((1/6)+(1/7))
+ee1=sqrt(vl1);ee1
+vl2=cmres*((1/6)+(1/6))
+ee2=sqrt(vl2);ee2
+
+
+```
+
+También necesito el el quantil de t
+
+```{r}
+tt=qt(1-(0.05/(2*2)),16);tt
+```
+
+Y por último las cotas inferiores 
+
+```{r}
+lt1-tt*ee1
+lt2-tt*ee2
+```
+Con una confianza global del 95% sabemos que las diferencias podrían ser tan bajas como 0.07 y 0.16 respectivamente, lo cual quiere decir que no se logra concluir que exista una diferencia lo suficientemente grande como para ser relevante. 
+
+
+B. La variable respuesta es la diferencia en PH antes y después de usar el detergente. Puede ser conveniente porque nosotros no sabemos de donde empezó el PH del agua en primer lugar antes de usar el detergente, por lo mismo es bueno observar que diferencia hace (o se espera que haga) el detergente antes de medirlo solo una vez
+
+
+C. Un factor fijo podría ser de donde se extrae el agua. Si la saco toda del mismo lugar es buena idea porque es esperable que el agua traiga naturalmente o uniformemente los mismos compuestos dentro y por lo tanto un PH igual o muy consistente. 
+
+
+
+
+
+
+
+
+

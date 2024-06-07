@@ -1635,11 +1635,14 @@ SCRes=[\sum(n_i-1)*S_i^2]-SCBloque
 <p>Tenemos entonces:</p>
 <ul>
 <li>GL: (n-1)-(a-1+b-1)</li>
-<li><span class="math inline">\(CMRes: SCRes/gl\)</span></li>
+<li><span class="math inline">\(CMRes: SCRes/gl\)</span> Acá a son los
+tratamientos y b son los bloques También pueden ser vistos como n-el
+número de parámetros del modelo (o cuantos coeficientes hay, hay que
+tener cuidado porque estos pueden cambiar con suma nula o así)
+<strong>NOTA:</strong> Ya con esto podemos hacer la tabla de análisis de
+varianza en la que debo de observar la <em>probabilidad asociada al
+factor</em></li>
 </ul>
-<p><strong>NOTA:</strong> Ya con esto podemos hacer la tabla de análisis
-de varianza en la que debo de observar la <em>probabilidad asociada al
-factor</em></p>
 </div>
 <div id="bloques-con-un-diseño-factorial." class="section level2">
 <h2>Bloques con un diseño factorial.</h2>
@@ -1775,6 +1778,37 @@ aleatoria.</p>
 <p>Entonces el número de bloques debe de ser tal que se logre un
 balance, por lo que se recomienda que sea <strong>un múltiplo del número
 de tratamientos</strong></p>
+<div id="totales-ajustados" class="section level2">
+<h2>Totales ajustados</h2>
+<p><span class="math display">\[
+Q_j=y_{j.}-\frac{1}{p}\sum^b_{k=1}n_{jk}y_{.k}
+\]</span></p>
+<p>Donde:</p>
+<ul>
+<li><span class="math inline">\(y_{j.}\)</span> es la suma del j-ésimo
+tratamiento.</li>
+<li><span class="math inline">\(y_{.k}\)</span> es la suma del késimo
+bloque.</li>
+</ul>
+<p><span class="math display">\[
+SCTrat.aj=\frac{p\sum^a_{j=1}Q_j^2}{\lambda a}
+\]</span></p>
+<p>Donde:</p>
+<ul>
+<li>a es el número total de tratamientos.</li>
+<li>p es el número de tratamientos en cada bloque</li>
+<li><span class="math inline">\(\lambda=r(p-1)/(a-1)\)</span></li>
+<li>r es el número de bloques en los que aparece un tratamiento.</li>
+</ul>
+<p>Y la SCResB= SCTot-SCTrat.aj-SCBloque.</p>
+<p>En R</p>
+<p>yjp=tapply(basey,base<span class="math inline">\(conc,sum)
+ypk=tapply(basey,base\)</span>bloque,sum) p=3
+njk=table(basey,base$bloque)</p>
+<p>yjp-as.vector(njk%*%ypk/p)</p>
+<p>Para hacerlo automáticamente debe de hacerse</p>
+<p>lm(y~bloque+factor,data = base)</p>
+</div>
 </div>
 <div id="parcelas-dividas" class="section level1">
 <h1>Parcelas dividas</h1>
@@ -1791,19 +1825,80 @@ subparcela.</p></li>
 <li><p>Este tipo de diseño se analiza únicamente mediante el enfoque de
 modelos mixtos.</p></li>
 </ul>
+<p>Tenemos entonces el siguiente modelo:</p>
+<p><span class="math display">\[
+\mu_{ijk}=\mu+\alpha_i+\beta_j+(\alpha\beta)_{ij}+\delta_k
+\]</span></p>
+<p>Donde:</p>
+<ul>
+<li><span class="math inline">\(\alpha_i\)</span> es el efecto del
+primer factor</li>
+<li><span class="math inline">\(\beta_j\)</span> es el efecto del
+segundo factor</li>
+<li><span class="math inline">\(\delta_k\)</span> es el efecto de la
+parcela</li>
+<li><span class="math inline">\((\alpha \beta)_{ij}\)</span> es el
+efecto de lainteracción entre los factores.</li>
+</ul>
+<p>Y asumimos que: $N(0, ^2_{}) $</p>
+<p>Para el análisis de diseños de parcelas es bueno recordar que tenemos
+dos niveles, el nivel superior, con su propia unidad experimental y
+propio o propios factores. Y un nivel inferior con su propia unidad y
+propio o propios factores. Es difícil generalizar algo así, pero es
+bueno recordarlo siempre.</p>
+<p>Para usar la función lmer() y calcular las probabilidades hay que
+conocer los grados de libertad</p>
+<p>Los grados de libertad para el error de parcela se obtienen sabiendo
+que los lotes están anidados dentro de cada método(el factor de
+parcela). Entonces se tienen a(r-1) grados de libertad, donde a es el
+número de métodos y r el número de bloques por cada nivel del
+factor.</p>
+<p>El error de subparcela se calcula con n-p-gl.parcela, donde p es el
+número de coeficientes.</p>
+<p>Cuando no hay interacción los grados de libertad de interacción se se
+suman al error de subparcela.</p>
+<p>Los grados de libertad de parcela no cambian.</p>
 </div>
 <div id="en-r" class="section level1">
 <h1>En R</h1>
 <div id="centrar-los-datos." class="section level2">
 <h2>Centrar los datos.</h2>
 <p>modc=lm(y~bloque,data = base) fit=modc$fit</p>
-<p>rc=base<span class="math inline">\(y-fit+mean(base1\)</span>y)</p>
+<p>rc=y-fit+mean(y)</p>
+<p>a la hora de comparar el gráfico centrado con el no centrado es
+importante observar la escala de los datos, sin embargo <strong>la forma
+correcta siempre va a ser con los datos centrados</strong></p>
 </div>
 <div id="gráfico" class="section level2">
 <h2>Gráfico</h2>
 <p>library(ggplot2)</p>
 <p>ggplot(base1,aes(x=bloque,y=y,group = trat))+ stat_summary(fun =
 “mean”,geom = “line”,aes(linetype = trat))</p>
+<p>Con Lattice</p>
+<p>library(lattice) xyplot(y ~ fact1, groups =
+fact2,type=“a”,auto.key=list(columns=4),
+xlab=“fact1”,ylab=“y”,data=base)</p>
+</div>
+<div id="modelos-mixtos" class="section level2">
+<h2>Modelos Mixtos</h2>
+<p>lme(y~x, random = ~1|bloque,data = base1)</p>
+<p>lmer(y~y+(1|bloque),data = base1), para este nos da un valor de t y
+hay que correr la hipótesis de dos colas.</p>
+<p>pt(t,glresiduales,lower.tail = F)*2</p>
+<p>Para obtener el LRT con lmer: drop1(mod,test=“chisq”)</p>
+</div>
+<div id="homocedasticidad" class="section level2">
+<h2>Homocedasticidad</h2>
+<p>En este caso, se recomienda obtener los residuales del modelo con
+bloques y luego hacer la prueba sobre estos residuales con el factor de
+la siguiente forma: bartlett.test(mod$res~trat)</p>
+</div>
+<div id="probabilidades" class="section level2">
+<h2>Probabilidades</h2>
+<p>lsmeans(mod2, pairwise~“factor”, adjust=“tukey”)</p>
+</div>
+<div id="gráfico-de-lineas" class="section level2">
+<h2>Gráfico de lineas</h2>
 </div>
 </div>
 

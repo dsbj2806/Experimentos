@@ -1,0 +1,188 @@
+---
+title: "Papel"
+author: "Daniel Sibaja Salazar"
+date: "2024-06-01"
+output: html_document
+---
+
+Entonces tengo que: 
+
+- Nivel Superior: 
+    - Unidad: El lote de papel
+    - Factor: El método de preparación de la pulpa
+- Nivel Inferior: 
+    - Unidad: La cuarta parte del lote de pulpa 
+    - Factor: La temperatura de cocción
+    
+# 1. Utilice los datos que se encuentran en el archivo papel.Rdata. Asegúrese que están bien definidos los factores método y temperatura.
+
+```{r}
+load("papel.Rdata")
+str(base)
+base$metodo=as.factor(base$metodo)
+base$temp=as.factor(base$temp)
+base$lote=as.factor(base$lote)
+
+```
+
+## 1.2
+
+```{r}
+table(base$lote,base$metodo)
+```
+
+```{r}
+library(lattice)
+xyplot(res ~ metodo, groups=temp,type="a",auto.key=list(columns=4),xlab="metodo",ylab="res",data=base)
+```
+
+# 2. ¿Qué implicaciones tendría una interacción entre método y temperatura?
+
+Implicaría que los efectos del metodo son diferentes dependiendo del nivel de temperatura en el que se encuentra. 
+
+##  Haga el análisis usando la función lmer de la librería lme4. La parte aleatoria son los bloques que se separan con un + del resto del modelo y se pone entre paréntesis (1|bloque). La instrucción completa debe quedar de la siguiente forma: lmer(Y~FP*FSP+(1|bloque)).
+
+```{r}
+library(lme4)
+mod=lmer(base$res~base$metodo*base$temp+(1|base$lote))
+
+```
+
+
+## El anova que da esta librería no tiene las probabilidades asociadas, pero se pueden calcular con los valores de F que da el anova
+
+```{r}
+anova(mod) 
+
+a=3
+r=3
+
+glm=a*(r-1)
+glm
+glt=nrow(base)-12-glm
+glt
+
+f=2.2967
+pf(f,glm,glt,lower.tail = F)
+glm
+glt
+```
+
+# Asumiendo que no hay interacción entre metodo y temp, se pueden probar dos hipóteis, una sobre el efecto del método usando los grados de libertad de parcela y otra sobre el efecto de la temperatura usando los grados de libertad de subparcela.
+
+## Use un modelo sin interacción y haga la prueba sobre el efecto de la temperatura comparando los promedios de forma marginal.
+
+```{r}
+options(contrasts = c("contr.sum","contr.poly"))
+mod1=lmer(base$res~base$metodo+base$temp+(1|base$lote))
+
+anova(mod1)
+table(base$metodo)
+pf(24.6241,2,24,lower.tail = F)
+```
+
+## Haga la prueba sobre el efecto del método comparando los promedios de forma marginal. Use los grados de libertad de parcela que son 6. Estos grados de libertad no cambian haya o no interacción.
+
+
+```{r}
+pf(3.9724,2,6,lower.tail = F)
+
+```
+
+# Puesto que se supone que no hay interacción entre método y temperatura, para hacer comparaciones múltiples entre los promedios de las 4 temperaturas, se pueden hacer comparaciones de Tukey
+
+## Compare los promedios y obtenga límites inferiores para los casos en que tenga sentido. Se usan solo los coeficientes fijos, los cuales se extraen mediante summary(mod)$coef. Se pueden usar solo los coeficientes de temperatura, lo que es equivalente a poner los de método en cero, es decir, para hacer las comparaciones marginales. Debe usar los grados de libertad de supbparcela que son 24.
+
+
+Para la temperatura tengo que:
+
+
+```{r}
+table(base$temp)
+```
+
+mu200=mu225
+mu200=mu250
+mu200=mu275
+mu225=mu250
+mu225=mu275
+mu250=mu275
+
+Y los contrastes
+
+mu200-mu225
+mu200-mu250
+mu200-mu275
+mu225-mu250
+mu225-mu275
+mu250-mu275
+
+```{r}
+coef=summary(mod1)$coef[,1]
+
+coef
+```
+
+
+
+```{r}
+v1=c(1,0,0,1,0,0)
+v2=c(1,0,0,0,1,0)
+v3=c(1,0,0,0,0,1)
+v4=c(1,0,0,-1,-1,-1)
+
+v12=v2-v1
+v13=v3-v1
+v14=v4-v1
+v23=v3-v2
+v24=v4-v2
+v34=v4-v3
+
+l1=v12%*%coef
+l2=v13%*%coef
+l3=v14%*%coef
+l4=v23%*%coef
+l5=v24%*%coef
+l6=v34%*%coef
+
+
+```
+
+
+```{r}
+ee=sqrt(t(v12)%*%vcov(mod1)%*%v12)
+table(base$temp)
+q1=l1/ee
+q2=l2/ee
+q3=l3/ee
+q4=l4/ee
+q5=l5/ee
+q6=l6/ee
+anova(mod1)
+ptukey(as.numeric(q1)*sqrt(2),4,24,lower.tail = F)
+ptukey(as.numeric(q2)*sqrt(2),4,24,lower.tail = F)
+ptukey(as.numeric(q3)*sqrt(2),4,24,lower.tail = F)
+ptukey(as.numeric(q4)*sqrt(2),4,24,lower.tail = F)
+ptukey(as.numeric(q5)*sqrt(2),4,24,lower.tail = F)
+ptukey(as.numeric(q6)*sqrt(2),4,24,lower.tail = F)
+
+```
+
+## Se pueden obtener las probabilidades de las comparaciones de Tukey usando la función lsmeans de la librería lsmeans con la siguiente instrucción lsmeans(mod2, pairwise~"temp", adjust="tukey"). Note que esto solo es útil para obtener las probabilidades pero no los intervalos o límites de confianza.
+
+
+```{r}
+library(lsmeans)
+
+lsmeans(mod1,pairwise~"temp",adjust="tukey")
+```
+
+
+
+
+
+
+
+
+
+

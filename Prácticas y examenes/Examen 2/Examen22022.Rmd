@@ -1,0 +1,309 @@
+---
+title: "Examen 2 2022"
+author: "Daniel Sibaja Salazar"
+date: "2024-06-04"
+output: html_document
+---
+
+# Pregunta 1 
+
+## Pregunta 1.a 
+
+Se trata de un experimento de parcelas divididas, debido a que se cuenta con bloques, que son las personas y estas personas cuentan con factor que no se puede aleatorizar, como lo es su "condición de desayuno" por lo que no todos los bloques tienen todos los tratamientos.
+
+## Pregunta 1.b
+
+Es un experimento de bloque simple, ya que todos los bloques cuentan con todos los tratamientos, esto debido a que el género no se incluyó. 
+
+# Pregunta 2
+
+## Pregunta 2.a 
+
+```{r}
+persona=as.factor(c(1:10))
+correr=c(27,42,27,59,64,35,60,36,38,54)
+jumping=c(36,31,45,47,40,10,21,10,19,28)
+cuerda=c(24,11,37,45,39,15,29,12,7,14)
+ejercicio=as.factor(c(rep("correr",10),rep("jumping",10),rep("cuerda",10)))
+levels(ejercicio)=c("correr","jumping","cuerda")
+dif=c(correr,jumping,cuerda)
+base1=data.frame(ejercicio,dif,persona)
+
+
+```
+
+Hay que centrar los datos 
+
+```{r}
+modc=lm(dif~persona,data = base1)
+fit=modc$fit
+rc=base1$dif-fit+mean(base1$dif)
+
+boxplot(rc~base1$ejercicio)
+```
+
+Parece que el promedio de correr es más alto que los demás promedios. Los dos restantes están parecidos. 
+
+
+## Pregunta 2.b 
+
+```{r}
+mod0=aov(dif~ejercicio+persona,data = base1)
+anova(mod0)[3,3]
+```
+
+El cmres representa la variabilidad dentro de los tratamientos sin tomar en cuenta los efectos de los bloques. 
+
+# Pregunta 3
+
+## Pregunta 3.a 
+
+No se puede afirmar nada, si bien es cierto cuando hay confusión no nos permite saber a qué se deben los efectos en la variable respuesta, No quiere decir que la variabilidad cambia en ningún sentido, afecta más que todo las conclusiones del experimento. 
+
+## Pregunta 3.b 
+
+Puede ser, por ejemplo, que la mayoría de personas que matricularon con R y A tienen un mayor gusto por la matemática, o más experiencia con la misma, por lo que los resultados de R y A son mejores pero porque tienen estudiantes más experimentados en el área más que porque los métodos de enseñanza son mejores.
+
+# Pregunta 4
+
+## Pregunta 4.a 
+
+A mano 
+
+## Pregunta 4.b 
+
+Podemos ver que para el comedero 1 todos los promedios son parecidos, mientras que para el comedero 2 los promedios de cada tipo de dieta cambian, uno se mantiene casi igual, otro aumenta mucho y otro disminuye un poco 
+
+# Pregunta 5
+
+
+
+```{r}
+load("basedetergente1.rdata")
+```
+
+## Pregunta 5.a
+
+$$
+\mu_{ij}=\mu+\alpha_i+\beta_j+(\alpha \beta)_{ij}
+$$
+
+Donde:
+- Alphai es el efecto del nivel i del factor A
+- betaj es el efecto del nivel j del factor b
+- AlphaBetaij es el efecto de interacción del nivel i del factor A y el nivel j del factor B. 
+
+## Pregunta 5.b 
+
+```{r}
+mod5b=aov(y~det*ti,data = basedetergente1)
+anova(mod5b)
+```
+
+Como hay efecto de interacción se debe de hacer los promedios de detergente, fijados para un nivel de tiempo 
+
+```{r}
+coeff=mod5b$coefficients
+coeff
+```
+
+Los vectores 
+
+En este caso no me debo preocupar por la ortogonalidad porque solo hago un contraste por nivel de tiempo
+
+```{r}
+v1=c(1,1,1,0,1,0)
+v2=c(1,1,0,1,0,1)
+v3=c(1,1,-1,-1,-1,-1)
+v4=c(1,-1,1,0,-1,0)
+v5=c(1,-1,0,1,0,-1)
+v6=c(1,-1,-1,-1,1,1)
+
+h1=v4-v1
+h2=v5-v2
+h3=v6-v3
+
+l1=coeff%*%h1
+l2=coeff%*%h2
+l3=coeff%*%h3
+
+l1
+l2
+l3
+```
+
+Primero debo de ver cuales pares tienen  diferencias significativas
+
+Necesito un error estándar
+
+```{r}
+ee=sqrt(t(h1)%*%vcov(mod5b)%*%h1)
+ee
+
+```
+
+Y el estadístico t
+
+```{r}
+t1=l1/ee
+t2=l2/ee
+t3=l3/ee
+```
+
+La probabilidad
+
+```{r}
+pt(t1,6,lower.tail = F)
+pt(t2,6,lower.tail = F)
+pt(t3,6,lower.tail = F)
+
+```
+
+Solo en un par se encuentran diferencias 
+
+Cuanti t
+
+```{r}
+qt=qt(1-0.05,6)
+```
+
+La cota
+
+```{r}
+l3-qt*ee
+```
+
+
+# Pregunta 6
+
+## Pregunta 6.a 
+
+```{r}
+load("basedetergente2.rdata")
+mod6a=aov(y~det*ti,data = basedetergente2)
+anova(mod6a)
+```
+
+Según la tabla del ANOVA no se rechaza la hipótesis nula de interacción, razón por la cual se debe de eliminar del modelo. 
+
+## Pregunta 6.b
+
+```{r}
+options(contrasts = c("contr.sum","contr.poly"))
+mod6b=aov(y~det+ti,data = basedetergente2)
+anova(mod6b)
+```
+
+Hay que comparar los tres detergentes 
+
+mu1.=mu2.
+mu1.=mu3.
+mu2.=mu3.
+
+Los contrastes 
+
+mu1.=mu2.
+mu1.=mu3.
+mu2.=mu3.
+
+
+El vector de medias
+```{r}
+vmedias=tapply(basedetergente2$y,basedetergente2$det,mean)
+vmedias
+
+
+v1=c(1,0,0)
+v2=c(0,1,0)
+v3=c(0,0,1)
+
+h12=v1-v2
+h13=v1-v3
+h23=v2-v3
+
+crossprod(h12,h13)
+crossprod(h12,h23)
+crossprod(h23,h13)
+
+```
+
+En este caso se debe de usar tukey 
+
+Los errores estándar
+
+```{r}
+coef=mod6b$coefficients
+v1=c(1,1,0,0,0)
+v2=c(1,0,1,0,0)
+v3=c(1,-1,-1,0,0)
+
+h12=v2-v1
+h13=v3-v1
+h23=v3-v2
+
+
+l1=h12%*%coef
+l2=h13%*%coef
+l3=h23%*%coef
+
+l1
+l2
+l3
+```
+
+
+Los errores estándar
+
+```{r}
+table(basedetergente2$det)
+anova(mod6b)
+ee=sqrt(0.00351*((1/6)+(1/6)))                    
+
+ee
+```
+
+
+El estadístico t 
+
+```{r}
+t1=l1/ee
+t2=l2/ee
+t3=l3/ee
+
+```
+
+Las probabilidades 
+
+```{r}
+anova(mod6b)
+ptukey(t1*sqrt(2),3,13,lower.tail = F)
+ptukey(t2*sqrt(2),3,13,lower.tail = F)
+ptukey(t3*sqrt(2),3,13,lower.tail = F)
+
+TukeyHSD(mod6b,which = "det")
+
+l1
+l2
+l3
+```
+
+
+Los tres contrastes son significativos entonces se puede calcular la cota inferior con tukey (En realidad ya está pero para practicar)
+
+
+Se necesita un cuantil 
+
+```{r}
+table(basedetergente2$det,basedetergente2$ti)
+q=qtukey(1-0.05,3,15)/sqrt(2)
+
+q
+```
+
+```{r}
+l1-q*ee
+l2-q*ee
+l3-q*ee
+```
+
+

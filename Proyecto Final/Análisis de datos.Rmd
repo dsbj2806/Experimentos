@@ -5,73 +5,97 @@ date: "2024-05-16"
 output: pdf_document
 ---
 
-# Preparación
+# Preparación 
 
 ```{r}
-#options(scipen = 999)
-#options(digits = 4)
+library(readxl)
+base1=read_xlsx("final_registro_cloud.xlsx",col_names = FALSE)
+names(base1)=c("Tiempo","BL","Nube","Denied","Right","Solicitudes","ID","Bloque")
+base1$BL=as.factor(base1$BL)
+base1$Solicitudes=as.factor(base1$Solicitudes)
+url=rep(c(1:(nrow(base1)/2)),times=1,each=2)
+#base1=cbind(base1,url)
+base1$Tiempo=base1$Tiempo*1000
+
+
+
+base2=read_xlsx("final_registro_local.xlsx",col_names = FALSE)
+names(base2)=c("Tiempo","BL","Nube","Denied","Right","Solicitudes","ID","Bloque")
+base2$BL=as.factor(base2$BL)
+base2$Solicitudes=as.factor(base2$Solicitudes)
+base2$Tiempo=base2$Tiempo*1000
+
+base=rbind(base1,base2)
+base$Nube=as.factor(base$Nube)
+table(base1$BL,base1$Nube,base1$Solicitudes)
 ```
 
 
-# Lectura de datos
-
 ```{r}
-base=read.csv("final_registro_completo.csv")
-names(base)=c("y","bl","local","denegado","detectado","solicitudes") ## A nombres más sencillos de utilizar
-```
+(table(base1$Bloque))
+(table(base2$Bloque))
 
-## Cantidad de réplicas por tratamiento
+base=rbind(base1,base2)
+base$Nube=as.factor(base$Nube)
+table(base$BL,base$Nube,base$Solicitudes)
 
-```{r}
-table(base$bl,base$local,base$solicitudes)
-table(base$local,base$bl)
-```
+quitar1=which(base1$Bloque=="N109")
+base1=base1[-quitar1,]
 
-## Pasar a factor 
+quitar2=which(base1$Bloque=="N1009")
+base1=base1[-quitar2,]
 
-Solo voy a pasar a factor lo que necesito.
-```{r}
-base$bl=as.factor(base$bl)
-levels(base$bl)=c("BL","ML")
+quitar3=which(base1$Bloque=="N5009")
+base1=base1[-quitar3,]
 
-base$local=as.factor(base$local)
-levels(base$local)=c("Local","Nube")
+quitar4=which(base1$Bloque=="N5006")
+base1=base1[-quitar4,]
 
-base$solicitudes=as.factor(base$solicitudes)
-levels(base$solicitudes)=c("10","100","500")
+quitar5=which(base2$Bloque=="L5006")
+base2=base2[-quitar5,]
 
-str(base)
-```
+quitar6=which(base1$Bloque=="N5008")
+base1=base1[-quitar6,]
 
-## Pasar de segundos a milisegundos
+quitar7=which(base2$Bloque=="L5008")
+base2=base2[-quitar7,]
 
-```{r}
-base$y=base$y*1
+quitar8=which(base1$Bloque=="N5004")
+base1=base1[-quitar8,]
 
-```
+quitar9=which(base2$Bloque=="L5004")
+base2=base2[-quitar9,]
 
+quitar10=which(base1$Bloque=="N1007")
+base1=base1[-quitar10,]
 
-# Análisis de datos 
-
-## Estadística descriptiva 
-
-```{r}
-mg=mean(base$y);mg # Media general
-mt=tapply(base$y,list(base$bl,base$local,base$solicitudes),mean);mt # Media por tratamiento
+quitar11=which(base2$Bloque=="L1007")
+base2=base2[-quitar11,]
 
 
-vg=mean(base$y);vg # Varianza general
-vt=tapply(base$y,list(base$bl,base$local,base$solicitudes),mean);vt #Varianza por tratamiento 
-```
 
+base=rbind(base1,base2)
+base$Nube=as.factor(base$Nube)
+table(base$BL,base$Nube,base$Solicitudes)
 
-## ANOVA
-```{r}
-mod=lm(y~bl*local*solicitudes,data = base)
-anova(mod)
 
 ```
+```{r}
+library(lme4)
+
+modp1=lmer(Tiempo~Solicitudes*BL*Nube+(1|Bloque),data = base)
+drop1(modp1,test = "Chisq")
+summary(modp1)
+
+summary(base$Tiempo/1000)
+```
+
+Protocolo UDP
+Protocolo TCP
 
 
 
+$$
+\mu_{ijk}=\mu+\alpha_i+\beta_j+\delta_k+(\alpha \beta)_{ij}+(\alpha\delta)_{ik}+(\beta \delta)_{jk}+(\alpha \beta \delta)_{ijk}+\nu_l
+$$
 

@@ -131,8 +131,10 @@ Representa la varianza dentro de los tratamientos una vez eliminado el efecto de
 Necestio el CMTrat
 
 ```{r}
-mt=tapply(base1$tiempo,base1$glicerina,mean)
+(mt=tapply(base1$tiempo,base1$glicerina,mean))
 cmtrat=(sum(6*(mt-mg)^2))/1
+cmtrat
+table(base1$glicerina)
 ```
 
 Ahora calculo la F
@@ -146,19 +148,297 @@ pf(f,1,((12-1)-(2-1+6-1)),lower.tail = F)
 Se rechaza la hipótesis de igualdad de medias para los tratamientos de glicerina. 
 
 
+# 4. Modelo mixto:
+
+## Para ilustrar la aplicación del modelo mixto, se ajusta el modelo con la función lme de la librería nlme. Escriba el modelo el cual se plantea de forma similar al modelo lineal, pero se separa el término aleatorio (bloque o persona) en el argumento random, y se pone de la siguiente forma: lme(Y X,random= 1|bloque, data = base).
+
+
+```{r}
+#install.packages("nlme")
+library(nlme)
+modm1=lme(tiempo~glicerina, random = ~1|persona,data = base1)
+
+```
+
+##  Obtenga el análisis de varianza con la función anova. Obtenga la probabilidad asociada a glicerina y compárela con la obtenida anteriormente.
+
+```{r}
+anova(modm1);anova(mod1);anova(mod2)
+```
+
+Se ven iguales. 
+
+
+## Existe otra librería muy utilizada para el análisis de modelos mixtos que se llama lme4. Se usa la función lme4 y el modelo se plantea de la siguiente forma: lme4(Y X+(1|bloque),data=base. Escriba el modelo con esta función.
+
+```{r}
+#install.packages("lme4",type = "source")
+library(lme4)
+modm2=lmer(tiempo~glicerina+(1|persona),data = base1)
+```
+
+
+## Obtenga el summary. Observe que el resultado no da una probabilidad, sino que da un valor de t, para el cual debe buscarse la probabilidad asociada con los grados de libertad residuales. Obtenga la probabilidad con dos colas y compárela con la obtenida anteriormente.
+
+```{r}
+summary(modm2)
+t=3.379
+pt(t,((12-1)-(2-1+6-1)),lower.tail = F)*2
+```
+
+# 5. Homocedasticidad:
+
+## Verifique el supuesto de homocedasticidad. No se pueden usar los tiempos originales puesto que debe considerarse la presencia de los bloques. La homocedasticidad es un supuesto que dice que la varianza condicional de la respuesta para cada tratamiento es la misma, lo cual implica que también los errores de los diferentes tratamientos tengan la misma varianza. En este caso, se recomienda obtener los residuales del modelo con bloques y luego hacer la prueba sobre estos residuales con el factor de la siguiente forma: bartlett.test(mod2$res~glicerina)
+
+```{r}
+anova(mod1)
+bartlett.test(mod1$residuals~base1$glicerina)
+```
+
+No se rechaza la hipótesis. 
+
+
+# 6. Análisis con glicerina y agua:
+
+##  Use base2. Visualice los datos. Como se trata de dos factores se pueden centrar los datos por bloque y hacer un boxplot con ambos factores. Para esto se incluyen los factores separados por +. Haga un gráfico con los datos centrados como respuesta y ponga glicerina+agua, y otro gráfico poniendo agua+glicerina.
+
+
+```{r}
+modc2=lm(tiempo~persona,data = base2)
+fit2=modc2$fit
+rc2=base2$tiempo-fit2+mean(base1$tiempo)
+
+boxplot(rc2~base2$glicerina+base2$agua)
+boxplot(rc2~base2$agua+base2$glicerina)
+```
+
+## Analice si existe interacción entre glicerina y agua tanto gráficamente como con una prueba formal.
+
+```{r}
+ggplot(base2,aes(x=agua,y=tiempo,group = glicerina))+
+  stat_summary(fun = "mean",geom = "line",aes(linetype = glicerina))
+```
+
+
+Parece que si hay interacción visto de forma gráfica. 
+
+
+Prueba formal:
+
+```{r}
+mod3=lm(tiempo~glicerina*agua+persona,data = base2)
+anova(mod3)
+```
+
+
+Se rechaza la hipótesis nula de interacción. 
+
+
+## (c) Pruebe si hay efecto de la glicerina en este nuevo diseño, asumiendo que no hay interacción.
+
+```{r}
+options(contrasts = c("contr.sum","contr.poly"))
+mod4=lm(tiempo~glicerina+agua+persona,data = base2)
+anova(mod4)
+```
+
+Si hay efecto de glicerina. 
+
+A mano.
+
+CMTrat
+
+```{r}
+mgl=tapply(base2$tiempo,base2$glicerina,mean)
+mg=mean(base2$tiempo)
+sum(table(base2$persona))
+cmtrat=sum(18*(mgl-mg)^2) ## Por qué 18? Agarra las replicas pero en la presentación la CMTrat para bloques es diferente
+cmtrat
+table(base2$glicerina)
+
+```
 
 
 
 
+## (d) Cuantifique la diferencia con un nivel de confianza de 95%.
+
+Primero necesito los contrastes 
+
+$$
+\mu_1-\mu_2
+$$
+
+Tengo los coeficientes 
+
+```{r}
+coef4=mod4$coef
+coef4
+```
 
 
+```{r}
+v1=c(1,1,0,0,0,0,0,0,0)
+v2=c(1,-1,0,0,0,0,0,0,0)
+dif=v2-v1
+
+l=dif%*%coef4
+
+l
+```
+
+El error estándar 
+
+```{r}
+ee=sqrt(t(dif)%*%vcov(mod4)%*%dif)
+```
+
+Y un cuantil t
+
+```{r}
+(nrow(base2)-1)-(6-1+6-1)
+t=qt(1-0.05,27) ## Preguntar grados de libertad 
+```
+
+Los intervalos 
+
+```{r}
+l-t*ee
+l+t*ee
+
+```
+
+## (e) Pruebe si hay efecto del tipo de agua en este nuevo diseño.
+
+```{r}
+anova(mod4)
+```
+
+Si hay 
+
+## Verifique entre cuáles pares de medias hay diferencias y cuantifique aquellas donde las diferencias son significativas. Use un nivel de signficancia de 5% y un nivel de confianza de 95%.
+
+```{r}
+table(base2$agua)
+```
+
+muA=muD
+muA=muN
+muD=muN
+
+Con los contrastes 
+
+muA-muD
+muA-muN
+muD-muN
+
+```{r}
+coef4
+```
 
 
+```{r}
+vv1=c(1,0,1,0,0,0,0,0,0)
+vv2=c(1,0,0,1,0,0,0,0,0)
+vv3=c(1,0,-1,-1,0,0,0,0,0)
+
+dd1=vv1-vv2;dd1
+dd2=vv1-vv3;dd2
+dd3=vv3-vv2;dd3
+
+## Son ortogonales? No, tengo que hacer tukey
+
+dd1%*%dd2
+dd1%*%dd3
+dd3%*%dd2
 
 
+ll1=coef4%*%dd1
+ll2=coef4%*%dd2
+ll3=coef4%*%dd3
 
 
+```
 
+
+Los errores estándar
+
+
+```{r}
+est1=sqrt(t(dd1)%*%vcov(mod4)%*%dd1)
+est2=sqrt(t(dd2)%*%vcov(mod4)%*%dd2)
+est3=sqrt(t(dd3)%*%vcov(mod4)%*%dd3)
+cmres4=25.26       
+
+table(base2$agua)
+eet=sqrt(cmres4*(1/12+1/12))
+est1
+```
+
+Ahora hay que calcular el estadístico t
+
+```{r}
+et1=ll1/eet
+et2=ll2/eet
+et3=ll3/eet
+
+```
+
+
+Y las probabilidad asociadas 
+
+```{r}
+ptukey(et1*sqrt(2),3,27,lower.tail = F)
+ptukey(et2*sqrt(2),3,27,lower.tail = F)
+ptukey(et3*sqrt(2),3,27,lower.tail = F)
+
+```
+
+Se encuentran diferencias en las diferencias A D y AN 
+
+Necesito el cuantil T
+
+```{r}
+qt1=qt(1-0.05/1,27) ## Por qué no sew hace bonferroni?
+
+
+```
+
+Y las cotas 
+
+```{r}
+ll1-qt1*eet
+ll2-qt1*eet
+
+```
+
+# 7. Análisis con glicerina y nivel aeróbico:
+
+Este experimento es de Parcelas divididas (?)
+
+## (a) Haga un esquema del diseño.
+
+Hecho a mano 
+
+##  Haga el análisis para determinar si hay interacción entre glicerina y nivel usando la función lmer. Use la función drop1, con el parámetro |test=Çhisq"| que sirve para obtener la LRT.
+
+```{r}
+modp=lmer(tiempo~glicerina*nivel+(1|persona),data = base3)
+drop1(modp,test = "Chisq")
+
+```
+
+No hay interacción. 
+
+## Asumiendo que no hay interacción, determine si hay un efecto de la glicerina y del nivel de aeróbico.
+
+```{r}
+modp1=lmer(tiempo~glicerina+nivel+(1|persona),data = base3)
+drop1(modp1,test = "Chisq")
+```
+
+
+No hay un efecto del nivel aeróbico pero si de glicerina. 
 
 
 

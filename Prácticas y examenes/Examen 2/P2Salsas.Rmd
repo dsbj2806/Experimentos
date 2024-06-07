@@ -1,0 +1,211 @@
+---
+title: "P2Salsas"
+author: "Daniel Sibaja Salazar"
+date: "2024-06-01"
+output: html_document
+---
+
+```{r}
+load("salsa3.Rdata")
+str(base)
+```
+
+# 1 
+
+Podría ser necesario si la personas investigadora cree que a las personas de cierto género o las personas de cierto grupo de edad tienen preferencia de un nivel de picante sobre el otro. 
+
+## 1.2
+
+Considerando que es un diseño de bloques, entonces habría que hacer un diseño de parcelas dividas donde el factor del nivel superior sea el sexo
+
+## 1.3 
+
+Igual que en el inciso anterior pero sin tomar en cuenta el picante 
+
+# 2
+
+```{r}
+library(ggplot2)
+
+ggplot(base,aes(x=persona,y=puntaje,group = pic))+
+  stat_summary(fun="mean",geom = "line",aes(linetype = pic))
+  
+```
+
+
+## 2.2
+
+Bueno parece que sí, hay personas que dan notas más bajas a todas las salsas y otras más altas en promedio. 
+
+# 3
+
+```{r}
+boxplot(base$puntaje~base$pic+base$tomate)
+```
+
+Es importante porque como se incluyó en las recetas y el diseño debe de ser incluído debido a que probablemente esto meta variabilidad a la respuesta 
+
+## 3.2
+
+```{r}
+modc=lm(puntaje~persona,data = base) 
+fit=modc$fit
+
+rc=base$puntaje-fit+mean(base$puntaje)
+
+boxplot(base$puntaje~base$pic+base$tomate)
+boxplot(rc~base$pic+base$tomate)
+```
+
+
+
+Se observan diferencias en el alto de las cajas, la variabiidad es menor con el puntaje centrado. 
+
+
+# 4
+
+```{r}
+n=nrow(base)
+var=var(base$puntaje)
+
+sum((n-1)*var)
+```
+
+## 4.b
+
+```{r}
+options(contrasts = c("contr.sum","contr.poly"))
+mod0=aov(puntaje~pic*tomate,data = base)
+sum(anova(mod0)[,2])
+```
+
+## 4.c
+
+```{r}
+mpic=tapply(base$puntaje,base$pic,mean)
+mpic
+mtom=tapply(base$puntaje,base$tomate,mean)
+mtom
+mg=mean(base$puntaje)
+
+ai=mpic-mg;ai
+bi=mtom-mg;bi
+
+mod0$coefficients
+```
+
+## 4.d
+
+Para picante 
+
+```{r}
+b=16 ## Preguntar: Cantidad de bloques o de réplicas 
+a=3
+(sctrat1=sum(b*ai^2))
+cmtrat1=sctrat1/(a-1)
+cmtrat1
+```
+
+Para tomate 
+
+```{r}
+table(base$tomate)
+b=24
+a=2
+(sctrat2=sum(b*bi^2))
+cmtrat2=sctrat2/(a-1)
+cmtrat2
+```
+
+
+## 4.e
+
+```{r}
+mod1=aov(puntaje~persona+pic*tomate,data = base)
+anova(mod1)
+```
+
+## 4.f
+
+```{r}
+a=6
+b=8
+mp=tapply(base$puntaje,base$persona,mean);mp
+scbloq=sum(a*(mp-mg)^2);scbloq
+```
+
+# 5
+
+```{r}
+mean(tapply(base$puntaje,list(base$tomate,base$pic),var))
+anova(mod0)
+```
+
+## 5.b
+
+```{r}
+sctot=sum(anova(mod1)[,2]);sctot
+scint=0.855
+
+scres=sctot-sctrat1-sctrat2-scint-scbloq;scres
+scres/35
+(n-1)-(6-1+8-1)
+```
+
+## 5.c
+
+13
+
+## 5.d
+
+```{r}
+n-13
+```
+
+# 6
+
+```{r}
+anova(mod1)
+```
+
+Según el anova no hay 
+
+Se puede hacer a mano 
+
+```{r}
+cmint=scint/2
+cmres=scres/35
+
+f=cmint/cmres
+
+pf(f,2,35,lower.tail = F)
+```
+
+# 7
+
+Se deben de escoger una gran cantidad de personas y asignarles aleatoriamente solo una salsa y observar así los resultados. 
+
+
+## 7.b
+
+Eficiencia relativa 
+
+```{r}
+anova(mod1)
+
+cmresDA=((8-1)*1.7919+8*(6-1)*0.4970)/(8*6-1);cmresDA
+er=((35+1)*(42+3)*cmresDA)/((35+3)*(42+1)*cmres)
+er*48
+
+
+```
+67 réplicas por tratamiento
+
+Preguntar por qué por 48 y no por 8 
+
+
+
+
+
+
+

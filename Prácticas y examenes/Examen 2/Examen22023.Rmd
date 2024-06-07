@@ -1,0 +1,218 @@
+---
+title: "Examen 2 2023"
+author: "Daniel Sibaja Salazar"
+date: "2024-06-05"
+output: html_document
+---
+
+# Pregunta 1 
+
+## Pregunta 1.a 
+
+Es de parcelas divididas, cada tarro se prepara con un método, el cual es el factor de parcela, y para cada tarro se aplica un método diferente para pintar la pared. 
+
+## Pregunta 1.b 
+
+Es de bloques factorial, el bloque es la zona climática
+
+# Pregunta 2 
+
+Se debe de hacer un diseño de bloques incompletos. 
+
+Asumiendo que son 10 expertos, que es un múltiplo de 5 
+
+```{r}
+sample(1:10,3,replace = F)
+```
+Hecho a mano con los arranques aleatorios 2,4,6,7,9,10
+
+
+# Pregunta 3 
+
+## Pregunta 3.a 
+
+```{r}
+cmresA=5.0101
+cmresB=1.3056
+fb=6
+fa=9
+n=(fb+1)*(fa+3)*cmresA
+d=(fb+3)*(fa+1)*cmresB
+n
+d
+eer=n/d;eer
+```
+
+La eficiencia del diseño de bloques es 3.52 la eficiencia de un diseño aleatorio 
+
+## Pregunta 3.b 
+
+```{r}
+4*round(eer)
+
+```
+
+Se necesitan 16 réplicas por tratamiento para igualar la eficiencia del diseño con bloques, para un n=48
+
+# Pregunta 4
+
+Sin ajustar el modelo puedo hacer un gráfico 
+
+```{r}
+y=c(1.79,1.84,2.15,2.23,2.01,1.90,1.81,1.69,1.94,2.09,2.17,2.3)
+com=rep(c("Comedero1","Comedero2"),each=2,times=3)
+sup=rep(c("Linaza","Soya","Girasol"),each=4,times=1);sup
+
+df=data.frame(y,com,sup)
+
+library(ggplot2)
+ggplot(df,aes(x=com,y=y,group = sup))+
+  stat_summary(fun="mean",geom = "line",aes(linetype = sup))
+```
+
+Si se espera interaccion 
+
+# Pregunta 5
+
+Con suma nula, 3 niveles por factor detergente y dos por tiempo. 
+
+Intercepto,det1,det2,t1,t2
+
+Hay 3 comparaciones que debo de hacer 
+
+det1=det2
+det1=det3
+det2=det3
+
+c(1,1,0,0,0)
+c(1,0,1,0,0)
+c(1,-1,-1,0,0)
+
+Entonces los que se deben de multiplicar por el vector de coeficientes son las restas de los mismos
+
+```{r}
+v1=c(1,1,0,0,0)
+v2=c(1,0,1,0,0)
+v3=c(1,-1,-1,0,0)
+
+v1-v2
+v1-v3
+v2-v3
+```
+
+c(0,1,-1,0,0)
+c(0,2,1,0,0)
+c(0,1,2,0,0)
+
+Solo se hacen par detergente debido a que es el factor de diseño, además la hipótesis de tiempo no se rechaza, por lo cual no tiene sentido hacerlo para tiempo. 
+
+# Pregunta 6
+
+No es el adecuado, ya que no se menciona en ningún momento si se centraron los datos, es decir estamos observando los tratamientos pero con la variabilidad de los bloques aún introducida, quiere decir que no estamos viendo la variable respuesta de forma correcta. 
+
+# Pregunta 7 
+
+Se presenta el problema de confusión, las personas que matriculan antes tienen una nota más alta, lo cual puede sugerir que tal vez estas personas tienen mejores hábitos de estudio que los que matriculan más tarde, lo que al final hace que no podamos distinguir si las personas que están con R y A tienen notas más altas porque son mejores estudiando o porque R y A tienen mejores métodos.
+
+# Pregunta 8 
+
+## P8.a
+
+H0: Los efectos de interacción son iguales a 0, es decir, no hay interacción. 
+
+
+## P8.b
+
+Tengo dos efectos de interacción, pero me hacen falta 
+
+```{r}
+ef=c(0.085,-0.068)
+
+t1=c(1,0)
+t2=c(-1,0)
+t3=c(0,1)
+t4=c(0,-1)
+t5=c(-1,-1)
+t6=c(1,1)
+
+int=c(t1%*%ef,t2%*%ef,t3%*%ef,t4%*%ef,t5%*%ef,t6%*%ef)
+
+```
+
+Los efectos entonces son
+
+```{r}
+int
+r=4
+
+scint=sum(r*int^2)
+cmint=scint/((2-1)*(3-1))
+cmint
+
+```
+
+También necesito el cuadrado medio residual 
+
+Tengo las varianzas 
+
+```{r}
+var=c(0.02,0.018,0.017,0.010,0.012,0.006)
+scres=sum((r-1)*var)
+4*6
+cmres=scres/(24-6)
+cmres
+```
+
+La F es 
+
+```{r}
+f=cmint/cmres;f
+
+```
+
+Y la probabilidad 
+
+```{r}
+1-pf(f,((2-1)*(3-1)),18)
+```
+
+No se rechaza la hipótesis de no interacción 
+
+
+## P8.c
+
+Debido a que no hay interacción, puedo comparar los factores individualmente, en caso de que las diferencias sean significativas. 
+
+Puedo comparar entonces todos los niveles de un factor, para lo que puedo usar tukey para encontrar las diferencias entre los pares. 
+
+Dependiendo de cuantos pares sean significativos tengo dos opciones, si en todos se encuentran diferencias, puedo hacer los intervalos aún con el cuantil de tukey, si no todos son significativos debo de usar un cuantil de T, en el que, por estar comparando todos los pares de un factor, no hay ortogonalidad y por lo tanto debo de hacer la correción de bonferroni a la hora de calcular la t con la correción, que sería dividir el nivel de significancia entre la cantidad de cotas inferiores que voy a calcular. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

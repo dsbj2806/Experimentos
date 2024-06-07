@@ -2,10 +2,12 @@
 title: "Diseños Factoriales"
 author: "Daniel Sibaja Salazar"
 output:
+  pdf_document:
+    toc: true
   html_document:
-    toc: yes
-    toc_float: yes
-    css: "tema1.css"
+    toc: true
+    toc_float: true
+    css: tema1.css
 ---
 
 A partir de ahora vamos a ver experimentos con más de un factor. Por lo cual hay que tomar en cuenta nuevos conceptos.
@@ -84,6 +86,8 @@ $$
 Los efectos de un factor dependen del nivel en el que nos encontremos del otro factor.
 
 En este caso ya *NO* se puede hablar del efecto de un nivel del factor A porque depende de en cual nivel del factor B estoy.
+
+**NOTA:** Cuando se prueba que no hay interacción se debe de ajustar un nuevo modelo, con diferentes grados de libertad, quiere decir que los cuadrados medios puede cambiar (el residual)
 
 ### El modelo con interacción.
 

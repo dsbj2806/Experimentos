@@ -1,0 +1,248 @@
+---
+title: "MaderasR"
+author: "Daniel Sibaja Salazar"
+date: "2024-05-31"
+output: html_document
+---
+# 1. Preparación:
+
+## (a) Abra el archivo maderas.csv.
+
+```{r}
+base=read.csv("maderas.csv")
+```
+
+## (b) Verifique que los factores están bien definidos.
+
+```{r}
+str(base)
+base$conc=as.factor(base$conc)
+base$dia=as.factor(base$dia)
+
+```
+
+# 2. Visualización de datos:
+
+## (a) Puesto que los bloques son incompletos no se pueden hacer gráficos de líneas y conviene más hacer boxplots. Haga dos boxplots, uno con la resistencia original y otro con la resistencia centrada por día.
+
+```{r}
+modc=lm(res~dia,data = base) 
+fit=modc$fit
+
+rc=base$res-fit+mean(base$res)
+
+boxplot(res~conc,data = base)
+boxplot(rc~base$conc)
+
+```
+
+
+# 3. Sumas de cuadrados:
+
+## (a) Haga el análisis de varianza considerando el factor de diseño y el bloque. Obtenga la suma de cuadrados total y compárela con la que se obtiene a partir de la varianza de la respuesta.
+
+```{r}
+mod1=lm(res~conc+dia,data = base)
+sum(anova(mod1)[,2])
+
+```
+
+
+
+## (b) Extraiga la suma de cuadrados residual.
+
+```{r}
+anova(mod1)[3,2]
+```
+
+
+## (c) Calcule la suma de cuadrados de bloques de la forma usual.
+
+```{r}
+a=7
+yk=tapply(base$res,base$dia,mean)
+yb=mean(base$res)
+anova(mod1)
+sum(3*(yk-yb)^2)
+```
+
+Preguntar. 
+
+# 4. Ajuste de las sumas de cuadrados:
+
+## (a) Obtenga los totales ajustados de cada tratamiento.
+
+
+```{r}
+yjp=tapply(base$res,base$conc,sum)
+ypk=tapply(base$res,base$dia,sum)
+p=3
+njk=table(base$conc,base$dia)
+
+qj=yjp-as.vector(njk%*%ypk/p)
+
+```
+
+
+## (b) Calcule la suma de cuadrados de tratamientos ajustada.
+
+```{r}
+num=p*sum(qj^2)
+r=3
+a=7
+lambda=r*(p-1)/(a-1)
+
+sctrata=num/(lambda*a)
+sctrata
+```
+
+## (c) Obtenga la suma de cuadrados residual a partir de la SCTot, SCBloque y SCTrat.aj. Compárela con la que extrajo del anova.
+
+```{r}
+scres=2600.286-(1317.429+1114.286);scres
+```
+
+Son iguales. 
+
+
+# 5. Prueba de la hipótesis:
+
+## a Compare la SCTrat.aj con la SCRes para probar la hipótesis de igualdad de medias. Concluya.
+
+
+```{r}
+cmtrat=sctrata/6
+cmres=scres/((nrow(base)-1)-(6+6))
+cmres
+f=cmtrat/cmres;f
+pf(f,6,8,lower.tail = F)
+```
+
+## (b) Para hacer el análisis de varianza adecuado de forma automática, debe establecerse un modelo con lm o aov. Se debe colocar primero el bloque y luego el factor de diseño. Debido a que este diseño no es simétrico, el orden en que se coloquen el bloque y el factor de diseño hace que cambien los resultados, ya que la suma de cuadrados que se ajusta es la segunda que aparece, de tal forma que el total se mantenga. Puesto que la hipótesis relativa al bloque no interesa ser probada, no hay problema con que la suma de cuadrados de bloque no esté ajustada. Algunos programas ajustan esta suma de cuadrados, por ejemplo, la librería ibd tiene una función llamada aov.ibd que hace el ajuste para los bloques.
+
+
+```{r}
+mod2=lm(res~dia+conc,data = base)
+anova(mod2)
+
+library(ibd)
+aov.ibd(res~dia+conc,data = base)
+```
+
+# 6. Análisis adicionales:
+
+## (a) Cambie al modelo de suma nula y obtenga los coeficientes del modelo.
+
+```{r}
+options(contrasts = c("contr.sum","contr.poly"))
+mod2=lm(res~dia+conc,data = base)
+coef=mod2$coefficients
+coef
+```
+
+## Puesto que el día es un bloque, cuando se estiman las medias de resistencia para cada tratamiento no interesa un día en particular, entonces se piensa en un día promedio. Por lo tanto, se pueden eliminar todos los coeficientes relativos a los días. Estime el promedio de resistencia para cada concentración para un día promedio.
+
+
+
+```{r}
+coef=coef[c(1,8:13)]
+coef
+```
+
+
+
+
+```{r}
+c1=c(1,1,0,0,0,0,0)
+c2=c(1,0,1,0,0,0,0)
+c3=c(1,0,0,1,0,0,0)
+c4=c(1,0,0,0,1,0,0)
+c5=c(1,0,0,0,0,1,0)
+c6=c(1,0,0,0,0,0,1)
+c7=c(1,-1,-1,-1,-1,-1,-1)
+
+coef%*%c1
+coef%*%c2
+coef%*%c3
+coef%*%c4
+coef%*%c5
+coef%*%c6
+coef%*%c7
+
+
+```
+
+## Obtenga las medias observadas para cada concentración y compárelas con las estimaciones del modelo
+
+```{r}
+(mo=tapply(base$res,base$conc,mean))
+```
+
+Son un poco distintas. Debido al ajuste que hace el modelo.
+
+
+## Para hacer comparaciones múltiples se puede eliminar incluso el intercepto y tomar en cuenta solo los 6 coeficientes correspondientes a las concentraciones. También se debe cortar la matriz de covarianza para extraer solo la parte de las concentraciones. Estime los contrastes adecuados entre todos los pares de medias según concentraciones.
+
+```{r}
+c1=c(1,0,0,0,0,0)
+c2=c(0,1,0,0,0,0)
+c3=c(0,0,1,0,0,0)
+c4=c(0,0,0,1,0,0)
+c5=c(0,0,0,0,1,0)
+c6=c(0,0,0,0,0,1)
+c7=c(-1,-1,-1,-1,-1,-1)
+
+coef=coef[-1]
+vcov=vcov(mod2)[c(8:13),c(8:13)]
+
+
+h12=c1-c2
+h13=c1-c3
+h14=c1-c4
+h15=c1-c5
+h16=c1-c6
+h17=c1-c7
+h23=c2-c3
+h24=c2-c4
+h25=c2-c5
+h26=c2-c6
+h27=c2-c7
+h34=c3-c4
+h35=c3-c5
+h36=c3-c6
+h37=c3-c7
+h45=c4-c5
+h46=c4-c6
+h47=c4-c7
+h56=c5-c6
+h57=c5-c7
+h67=c6-c7
+
+h=cbind(h12,h13,h14,h15,h16,h17,h23,h24,h25,h26,h27,h34,h35,h36,h37,h45,h46,h47,h56,h57,h67)
+```
+
+## Calcule el error estándar usando los contrastes y verifique que no da lo mismo si usa la fórmula clásica. La fórmula clásica para la varianza de una diferencia de promedios es:
+
+```{r}
+(ee=sqrt(diag(t(h)%*%vcov%*%h)))
+sqrt((2*cmres)/3)
+```
+
+## (f) Haga la prueba de las hipótesis asociadas a los contrastes.
+
+```{r}
+l=t(h)%*%coef
+l=abs(l)
+
+nrow(l)
+q=l/ee
+
+ptukey(q,7,8,lower.tail = F)
+```
+
+
+
+
+
+
+

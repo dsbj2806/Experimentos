@@ -99,14 +99,14 @@ Es lo mismo que hemos hecho en todo el curso, dividir la variabilidad total (Sum
 ## Variación entre los promedios de un factor. (CMTrat)
 
 $$
-CMTrat=\frac{\sum b (\bar y_{j*}-\bar y )^2}{a-1}
+CMTrat=\frac{\sum r (\bar y_{j*}-\bar y )^2}{a-1}
 $$
 
 Donde:
 
 - $\bar y _{j*}$ Promedio del tratamiento j marginal al bloque. 
 - A: número total de tratamientos.
-- B: Cantidad de bloques.
+- r: Cantidad de réplicas de ese tratamiento.
 
 
 ## Variación entre los promedios de los bloques. (CMBloque)
@@ -137,8 +137,8 @@ Tenemos entonces:
 
 - GL: (n-1)-(a-1+b-1)
 - $CMRes: SCRes/gl$
-
-
+Acá a son los tratamientos y b son los bloques
+También pueden ser vistos como n-el número de parámetros del modelo (o cuantos coeficientes hay, hay que tener cuidado porque estos pueden cambiar con suma nula o así)
 **NOTA:** Ya con esto podemos hacer la tabla de análisis de varianza en la que debo de observar la *probabilidad asociada al factor*
 
 ## Bloques con un diseño factorial. 
@@ -249,8 +249,66 @@ Asigno solo 6 tratamientos por día pero debo de hacerlo de forma aleatoria.
 
 Entonces el número de bloques debe de ser tal que se logre un balance, por lo que se recomienda que sea **un múltiplo del número de tratamientos**
 
+Si tengo 7 tratamientos, debo de tener 7,14,21... bloques. Los inicios aleatorios deben de ser la cantidad de tratamientos máximos que tengo por día, multiplicada por el número que multiplica a la cantidad de tratamientos para obtener la cantidad de bloques. 6,12,18, etc. De forma que siempre haya una concordancia. 
 
-# Parcelas dividas 
+## Totales ajustados 
+
+$$
+Q_j=y_{j.}-\frac{1}{p}\sum^b_{k=1}n_{jk}y_{.k}
+$$
+
+Donde:
+
+- $y_{j.}$ es la suma del j-ésimo tratamiento.
+- $y_{.k}$ es la suma del késimo bloque.
+
+
+$$
+SCTrat.aj=\frac{p\sum^a_{j=1}Q_j^2}{\lambda a}
+$$
+
+Donde:
+
+- a es el número total de tratamientos. 
+- p es el número de tratamientos en cada bloque
+- $\lambda=r(p-1)/(a-1)$ 
+- r es el número de bloques en los que aparece un tratamiento. 
+
+Y la SCResB= SCTot-SCTrat.aj-SCBloque. 
+
+En R
+
+yjp=tapply(basey,base$conc,sum)
+ypk=tapply(basey,base$bloque,sum)
+p=3
+njk=table(basey,base$bloque)
+
+yjp-as.vector(njk%*%ypk/p)
+
+
+Para hacerlo automáticamente debe de hacerse 
+
+lm(y~bloque+factor,data = base)
+
+A la hora de hacer un diseño de bloques incompletos cuando la cantidad de bloques es mayor a la cantidad de tratamientos hay que tener cuidado y tenemos dos opciones para hacerlo correctamente. 
+
+Podemos hacer una "simetría de inicios" donde los inicios coincidan en los primeros a bloques con los segundos a bloques. 
+
+```{r echo=FALSE}
+knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experimentos/Fotos resumenes/9.png")
+```
+
+O cuando los inicios son completamente aleatorios podemos hacerlos por aparte primero los primeros a bloques, ignorando los demás, después los segundos x bloques, ignorando los demás. 
+
+```{r echo=FALSE}
+knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experimentos/Fotos resumenes/10.png")
+```
+
+En excel podemos verificar que cada bloque efectivamente tiene la cantidad de tratamientos determinada con la función *CONTARA*
+
+
+
+# Parcelas divididas 
 
 Es un tipo especial del diseño de bloques. En el cual se tienen 2 factores o más. Pero el bloque **solo considera los niveles de uno de los factores**, mientras que el los bloques se clasifican en los niveles del segundo factor. 
 
@@ -262,6 +320,43 @@ Entonces tengo lo siguiente:
 
 - Este tipo de diseño se analiza únicamente mediante el enfoque de modelos mixtos. 
 
+Tenemos entonces el siguiente modelo: 
+
+$$
+\mu_{ijk}=\mu+\alpha_i+\beta_j+(\alpha\beta)_{ij}+\delta_k
+$$
+
+Donde: 
+
+- $\alpha_i$ es el efecto del primer factor
+- $\beta_j$ es el efecto del segundo factor
+- $\delta_k$ es el efecto de la parcela
+- $(\alpha \beta)_{ij}$ es el efecto de lainteracción entre los factores. 
+
+Y asumimos que: $\delta \sim N(0, \sigma^2_{\delta}) $
+
+
+Para el análisis de diseños de parcelas es bueno recordar que tenemos dos niveles, el nivel superior, con su propia unidad experimental y propio o propios factores. Y un nivel inferior con su propia unidad y propio o propios factores. Es difícil generalizar algo así, pero es bueno recordarlo siempre. 
+
+Para usar la función lmer() y calcular las probabilidades hay que conocer los grados de libertad
+
+Los grados de libertad para el error de parcela se obtienen sabiendo que los lotes están anidados dentro de cada método(el factor de parcela). Entonces se tienen a(r-1) grados de libertad, donde a es el número de métodos y r el número de bloques por cada nivel del factor.
+
+El error de subparcela se calcula con n-p-gl.parcela, donde p es el número de coeficientes.
+
+Cuando no hay interacción los grados de libertad de interacción se se suman al error de subparcela. 
+
+Los grados de libertad de parcela no cambian. 
+
+Para los grados de libertad residuales, se puede hacer un modelo como el mixto que se está usando pero normal, sin bloques, se toman los glres y se restan los de gl del error de parcela. 
+
+**¿Qué pasa si quueremos converir eL diseño de bloques a uno de parcelas?** Es posible hacerlo siempre y cuando se le añada un factor que defina o caraterice al bloque. 
+
+Un ejemplo de un diseño de parcelas: 
+
+```{r echo=FALSE}
+knitr::include_graphics("C:/Users/danie/OneDrive/Cosas/Escritorio/Carrera/Experimentos/Fotos resumenes/8.png")
+```
 
 
 # En R 
@@ -271,7 +366,9 @@ Entonces tengo lo siguiente:
 modc=lm(y~bloque,data = base)
 fit=modc$fit
 
-rc=base$y-fit+mean(base1$y)
+rc=y-fit+mean(y)
+
+a la hora de comparar el gráfico centrado con el no centrado es importante observar la escala de los datos, sin embargo **la forma correcta siempre va a ser con los datos centrados**
 
 ## Gráfico 
 
@@ -280,13 +377,37 @@ library(ggplot2)
 ggplot(base1,aes(x=bloque,y=y,group = trat))+
   stat_summary(fun = "mean",geom = "line",aes(linetype = trat))
 
+Con Lattice
+
+library(lattice)
+xyplot(y ~ fact1, groups = fact2,type="a",auto.key=list(columns=4),
+xlab="fact1",ylab="y",data=base)
+
+Estos gráficos se pone en el eje x el factor que no es de diseño, en el y la variable respuesta y las líneas son entonces el factor de diseño
+
+## Modelos Mixtos 
+
+lme(y~x, random = ~1|bloque,data = base1)
+
+lmer(y~y+(1|bloque),data = base1), para este nos da un valor de t y hay que correr la hipótesis de dos colas. 
+
+pt(t,glresiduales,lower.tail = F)*2
+
+Para obtener el LRT con lmer: drop1(mod,test="chisq")
 
 
 
+## Homocedasticidad 
+
+En este caso, se recomienda obtener los residuales del modelo con bloques y luego hacer la prueba sobre estos residuales con el factor de la siguiente forma: bartlett.test(mod$res~trat)
 
 
+## Probabilidades 
+
+lsmeans(mod2, pairwise~"factor", adjust="tukey")
 
 
+## Gráfico de lineas 
 
 
 

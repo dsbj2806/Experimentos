@@ -1,0 +1,125 @@
+---
+title: "P2Mariposas"
+author: "Daniel Sibaja Salazar"
+date: "2024-06-01"
+output: html_document
+---
+
+# 1
+
+```{r}
+base=read.csv("Mariposas2.csv",sep = ";")
+base$bloque=as.factor(paste(base$sitio,base$semana))
+base$tipo=as.factor(base$tipo)
+base$altura=as.factor(base$altura)
+base$especie=as.factor(base$especie)
+
+str(base)
+```
+
+
+# 2 
+
+```{r}
+library(ggplot2)
+
+ggplot(base,aes(x=bloque,y=frec,group = paste(altura,especie)))+ stat_summary(fun = "mean",geom = "line",aes(linetype =  paste(altura,especie)))
+```
+
+Gráfico de puntos.
+
+```{r}
+mb=tapply(base$frec,base$bloque,mean)
+plot(mb,type = "b")
+```
+
+
+# 3. Con los datos centrados. 
+
+```{r}
+modc=lm(frec~bloque, data = base)
+fit=modc$fit
+rc=base$frec-fit+mean(base$frec)
+
+boxplot(rc~base$altura+base$especie,ylim=c(0,12))
+boxplot(base$frec~base$altura+base$especie,ylim=c(0,12))
+
+```
+
+Con los datos centrados los tratamientos y sus medias pueden ser vistos de mejor forma y más eficientemente. 
+
+# 4
+
+```{r}
+mod0=aov(frec~bloque+especie*altura,data = base)
+```
+
+```{r}
+mod1=aov(frec~especie*altura,data = base)
+anova(mod0)
+anova(mod1)
+
+pf(1,45,1)
+```
+
+El cuadrado medio residual cambia mucho, debido a que los grados de libertad del bloque y la scbloque ahora se suman a los gl residuales y a la scres respectivamente, por lo que el calculo cambia y, evidentemente, su resultado. 
+
+El que no tiene bloque es más alto, como consecuencia el F es más bajo, haciendo más difícil detectar diferencias. 
+
+# 5
+
+- Nivel superior: 
+    - Unidad: Ubicación en el bosque 
+    - Factor: Tipo de ubicación, sol o sombra 
+- Nivel inferior:
+    - Unidad: 
+    - Factores: Altura y especie. 
+    
+
+```{r}
+ggplot(base,aes(x=tipo,y=frec,group = altura))+ stat_summary(fun = "mean",geom = "line",aes(linetype =  altura))
+
+ggplot(base,aes(x=tipo,y=frec,group = especie))+ stat_summary(fun = "mean",geom = "line",aes(linetype =  especie))
+```
+
+Parece que si
+
+# 6
+
+```{r}
+library(lme4)
+modm=lmer(frec~altura*especie+tipo*altura+tipo*especie+(1|bloque),data = base)
+summary(modm)
+
+a=2
+r=8
+glp=a*(r-1)
+glp
+
+
+table(base$bloque,base$tipo)
+```
+
+```{r}
+modt=lm(frec~altura*especie+tipo*altura+tipo*especie,data = base)
+anova(modt)[7,1]-14
+```
+
+```{r}
+anova(modm)
+drop1(modm,test = "Chisq")
+
+f=anova(modm)[4:6,4]
+pf(f,1,43,lower.tail = F)
+```
+
+
+
+
+
+
+
+
+
+
+
