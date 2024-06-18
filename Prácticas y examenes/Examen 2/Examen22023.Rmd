@@ -156,7 +156,7 @@ También necesito el cuadrado medio residual
 Tengo las varianzas 
 
 ```{r}
-var=c(0.02,0.018,0.017,0.010,0.012,0.006)
+var=c(0.002,0.018,0.017,0.010,0.012,0.006)
 scres=sum((r-1)*var)
 4*6
 cmres=scres/(24-6)

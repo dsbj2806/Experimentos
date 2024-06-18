@@ -2,12 +2,12 @@
 title: "Diseños Factoriales"
 author: "Daniel Sibaja Salazar"
 output:
-  pdf_document:
-    toc: true
   html_document:
-    toc: true
+    toc: yes
     toc_float: true
     css: tema1.css
+  pdf_document:
+    toc: true
 ---
 
 A partir de ahora vamos a ver experimentos con más de un factor. Por lo cual hay que tomar en cuenta nuevos conceptos.

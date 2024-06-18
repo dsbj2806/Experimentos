@@ -1,0 +1,156 @@
+---
+title: "Resumen Supuestos del modelo"
+author: "Daniel Sibaja Salazar"
+date: "2024-06-12"
+output: html_document
+---
+
+Los modelos que hacemos, similar que en regresión, tienen 3 supuestos importantes. 
+
+- Independencia 
+- Normalidad 
+- Homocedasticidad 
+
+# Independencia de las observaciones. 
+
+Es especialmente importante cuando los datos fueron recolectados en orden (cuando puede haber efectos del tiempo) o espacialmente. '
+
+Puede violarse el supuesto por ejemplo que en algunos procesos se de aprendizaje o fatiga al pasar del tiempo.
+
+También, se viola el supuesto cuando hay un diseño de bloques con más de una observación por tratamiento. 
+
+- Es util por ejemplo, graficas los residuos contra el tiempo y observare si hay algún patrón. 
+
+- También se puede graficar los residuales con respecto a la información espacial (si se cuenta con la misma), con el objetivo de determinar si existe alguna relación. 
+
+# Normalidad 
+
+Las distribuciones condicionales a los factores deben se ser normales. La prueba F es robusta a la violación de este supuesto, siempre y cuando sea leve. 
+
+La violación de este supuesto trae los siguientes problemas: 
+
+1. Los estimadores de los minimos cuadrados pueden no ser óptimos, otros estimadores robustos se recomiendan. 
+
+2. Las pruebas de e intervalos de confianza no son válidos. Se afecta el nivel de significancia y potencia.
+
+3. Las distribuciones de colas largas son el problema. 
+
+## Pruebas formales. 
+
+- QQPlot es una buena opción. Kolmogorov Smirnov no es tan flexible 
+    - El pvalue no es muy útil como indicador de la acción que debemos tomar 
+- Pequeñas desviaciones son detectadas con una muestra grande, pero los minimos cuadrados no hay razon de peso para abandsonarlos. 
+- Para muestras pequeñas las pruebas formales tienen poca potencia. 
+
+## Formas de evaluarla 
+
+- Cuando n es grande, se puede hacer independientemente por tratamiento. 
+
+- Cuando los n son pequeños se pueden combinar los residuales de todos los tratamientos, *siempre y cuando las varianzas no sean muy desiguales*
+
+- Es buena idea investigar la homocedasticidad antes de la normalidad, aunque no siempre hacemos eso. 
+
+# Homocedasticidad o varianza constante. 
+
+La distribución de la respuesta tiene una varianza constante en cada tratamiento (igual)
+
+La violación del supuesto no es grave si el experimento es balanceado. 
+
+- En modelos desbalanceados o en los casos en que una de las varianzas es mucho mayor si se trata de un problema grave. 
+
+## Verificación y pruebas 
+
+- Graficos de residuos contra predichos. 
+    - Si la varianza es constante debe de haber una nube aleatoria de puntos sin patrón
+- Se puede usar los valores absolutos o raíz cuadrada de los residuales ya que el signo no es tan importante. 
+- Si los tamaños de muestra son muy distintos se usan los residuos estudentizados. 
+- Con diseños de bloques se evalua la homocedasticidad sobre los residuos. 
+
+### Pruebas 
+
+- Obrien, Brown-Forsythe, Levene y Bartlett
+    - Breusch-Pagan Sirve con covariables. 
+    
+# Soluciones ante violación de supuestos. 
+
+Hay varias formas: 
+
+## Transformaciones 
+
+Se pueden aplicar trasnformaciones a la variable respuesta. El logartimo es el más común, en especial cuando la desviación estándar del error es un porcentaje de la respuesta. 
+
+A veces las transformaciones imposibilitan la interpretación. 
+
+- Box-Cox es útil. 
+
+## Mínimos cuadrados ponderados. 
+
+- Este método es útil si hay normalidad pero no homocedasticidad. Y cuando no se pueden usar pruebas robustas. 
+
+- Las observaciones con varianza pequeña dan información más confianble sobre los efectos comparados con los que tienen varianza más alta. Este método da peso a los que tienen menor varianza. 
+
+- Las estimaciones de los promedios no cambian respecto a cuando no se usa Mínimos Cuadrados Ponderados. 
+
+Este método no logra la homocedasticidad, si no más bien que se toma en cuenta la heterocedasticidad. 
+
+
+## Pruebas no paramétricas. 
+ 
+Estas pruebas son robustas cuando no se tenga el modelo ideal. Cuando los supuestos son fuertemente violados las pruebas no paramétricas tampoco son ideales. 
+
+Estos métodos no asumen nada sobre la distribución de los datos. Son útiles en presencia de valores extremos o un tamaño de muestra muy pequeño, sin embargo siempre es mejor evitarlas. 
+
+Tienen muchas desventajas: 
+
+- No existe un método confiable para estimar los intervalos de confianza. 
+- Son menos potentes. 
+- Si se hace un método no paramétrico con datos que si podían usarse con métodos paramétricos es desperdicio de información. 
+
+Entre las opciones está: 
+
+- Kruskal Wallis 
+- Friedmann
+- Hay formas de hacer comparaciones múltiples 
+- Prueba de la mediana. 
+- Jonckeere-Terpstra:  Cuando hay un ordenamiento. 
+- Prueba de interacción con contraste de rangos alineados. 
+- Permutaciones con simulaciones. 
+- Bootstrap
+
+# Potencia de la prueba
+
+La potencia de la prueba es la probabilidad de rechazar la hipótesis cuando hay  que rechazarla. 
+
+Se debe de tomar en cuenta varios elementos:
+
+- La diferencias relevante. En caso de que no haya, se pueden plantear diferentes escenarios.
+- Influye la variabilidad, el tipo de diseño y el nivel de significancia $\alpha$
+
+## Conceptos. 
+
+En cada experimento es importante definir una cantidad adecuada de réplicas que me asegure detectar diferencias. Por lo que es importante hacer un ejercicio y observar ¿De cuánto es una diferencia entre los promedios que resulte práctica?
+
+## Diferencia Relevante. 
+
+La diferencia entre los promedios puede ser grande o pequeña. Por lo que se busca determinar el tamaño mínimo para que esta diferencias sea de interés. 
+
+Esto debido a que puede haber diferencias en promedios que difieren tan poco que no valen nuestra atención. El punto de corte donde empieza a valer la pena se denota $\delta$ y se llama detectabilidad de la prueba. 
+
+## Potencia y Error tipo II 
+
+La potencia entonces expresa qué tanta seguridad se tiene de llegar a la conclusión correcta, tomando en cuenta la diferencia relevante, entre otros aspectos. Como la variabilidad, etc. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

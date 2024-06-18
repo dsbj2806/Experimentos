@@ -2,20 +2,35 @@
 title: "Análisis de datos proyecto Final de experimentos I"
 author: "Daniel Sibaja Salazar"
 date: "2024-05-16"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
-# Preparación 
+# Preparación
+
+## Paquetes
 
 ```{r}
 library(readxl)
+library(lme4)
+library(dplyr)
+library(ggplot2)
+library(qqplotr)
+library(car)
+library(lattice)
+```
+
+
+Se cargan los datos. Es necessario pasar las observaciones a tipo factor.
+
+```{r}
 base1=read_xlsx("final_registro_cloud.xlsx",col_names = FALSE)
 names(base1)=c("Tiempo","BL","Nube","Denied","Right","Solicitudes","ID","Bloque")
 base1$BL=as.factor(base1$BL)
 base1$Solicitudes=as.factor(base1$Solicitudes)
-url=rep(c(1:(nrow(base1)/2)),times=1,each=2)
-#base1=cbind(base1,url)
-base1$Tiempo=base1$Tiempo*1000
+base1$Nube=as.factor(base1$Nube)
+
 
 
 
@@ -23,22 +38,21 @@ base2=read_xlsx("final_registro_local.xlsx",col_names = FALSE)
 names(base2)=c("Tiempo","BL","Nube","Denied","Right","Solicitudes","ID","Bloque")
 base2$BL=as.factor(base2$BL)
 base2$Solicitudes=as.factor(base2$Solicitudes)
-base2$Tiempo=base2$Tiempo*1000
-
-base=rbind(base1,base2)
-base$Nube=as.factor(base$Nube)
-table(base1$BL,base1$Nube,base1$Solicitudes)
+base2$Nube=as.factor(base2$Nube)
 ```
 
+Podemos unir las bases para que sea solo una tabla grande y ver los tratamientos
 
 ```{r}
-(table(base1$Bloque))
-(table(base2$Bloque))
-
 base=rbind(base1,base2)
-base$Nube=as.factor(base$Nube)
+base$Bloque=as.factor(base$Bloque)
 table(base$BL,base$Nube,base$Solicitudes)
+str(base)
+```
 
+Vemos que hay un desbalance con los tratamientos, según el experto se pueden eliminar parcelas, se eliminan las que causan el desbalance
+
+```{r}
 quitar1=which(base1$Bloque=="N109")
 base1=base1[-quitar1,]
 
@@ -72,30 +86,347 @@ base1=base1[-quitar10,]
 quitar11=which(base2$Bloque=="L1007")
 base2=base2[-quitar11,]
 
-
-
+base2$Bloque=base1$Bloque
 base=rbind(base1,base2)
-base$Nube=as.factor(base$Nube)
 table(base$BL,base$Nube,base$Solicitudes)
-
-
 ```
+
+Se soluciona el desbalance, ahora los bloques deben de coincidir.
+
+# Descriptivos
+
+## Promedios por tratamiento y varianza. 
+
 ```{r}
-library(lme4)
-
-modp1=lmer(Tiempo~Solicitudes*BL*Nube+(1|Bloque),data = base)
-drop1(modp1,test = "Chisq")
-summary(modp1)
-
-summary(base$Tiempo/1000)
+options(scipen = 999)
+m=tapply(base$Tiempo,list(base$BL,base$Nube,base$Solicitudes),mean);m
+v=tapply(base$Tiempo,list(base$BL,base$Nube,base$Solicitudes),var);v
 ```
 
-Protocolo UDP
-Protocolo TCP
+Observamos que son valores que están cercanos a 0, esto se debe a que la variable respuesta está dada en segundos y pero los valores de tiempo son mucho más pequeños que un segundo.
+
+```{r}
+base$TiempoT=base$Tiempo*100
+m=tapply(base$TiempoT,list(base$BL,base$Nube,base$Solicitudes),mean);m
+v=tapply(base$TiempoT,list(base$BL,base$Nube,base$Solicitudes),var);v
+```
+
+Parece que en centisegundos todo tiene un poco más de coherencia.
+
+## Análisis gráfico 
 
 
+### Gráfico de cajas 
+
+Este puede ayudarnos a comprender los tratamientos, como se comparan entre ellos en términos de medias y varianzas. Como se trata de un modelo con bloques hay que centras los datos. 
+
+```{r}
+modc=lm(TiempoT~Bloque,data = base) 
+fit=modc$fit
+rc=base$TiempoT-fit+mean(base$TiempoT)
+base$rc=rc
+
+
+ggplot(base, aes(x = interaction(BL, Nube, Solicitudes), y = rc)) +
+  geom_boxplot() +
+  labs(x = "Tratamiento", y = "Tiempo Centrado") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Observamos que hay tratamientos con muy poca variabilidad y otros con mucha. Lo cual puede representar un problema con la *homocedasticidad*
+
+### Gráfico de lineas para ver Interacción Triple. 
+
+```{r}
+xyplot(base$TiempoT~base$BL|base$Solicitudes,group=base$Nube,pch=18,type="a")
+```
+
+Parece no haber interacción triple pues el comportamiento de interacción es similar para cada nivel de Solicitudes. 
+
+
+### Gráficos de lineas para ver interacción doble. 
+
+```{r}
+ggplot(base,aes(x=Nube,y=TiempoT,group = BL))+
+  stat_summary(fun.y = "mean",geom = "line",aes(linetype = BL))
+
+ggplot(base,aes(x=Solicitudes,y=TiempoT,group = BL))+
+  stat_summary(fun.y = "mean",geom = "line",aes(linetype = BL))
+
+ggplot(base,aes(x=Solicitudes,y=TiempoT,group = Nube))+
+  stat_summary(fun.y = "mean",geom = "line",aes(linetype = Nube))
+  
+```
+
+
+
+# El modelo
+
+El modelo es un modelo mixto de parcelas divididas, el cual debe de cumplir los supuestos de normalidad y de homocedasticidad.
+
+Es el siguiente:
 
 $$
 \mu_{ijk}=\mu+\alpha_i+\beta_j+\delta_k+(\alpha \beta)_{ij}+(\alpha\delta)_{ik}+(\beta \delta)_{jk}+(\alpha \beta \delta)_{ijk}+\nu_l
-$$
+$$ 
+
+
+Donde:
+
+-   $\mu$ es la media general
+-   $\alpha_i$ es el efecto del nivel i del Factor BlackList
+-   $\beta_j$ es el efecto del nivel j del Factor Nube
+-   $\delta_k$ es el efecto del nivel k del Factor Solicitudes
+-   $(\alpha \beta)_{ij}$ es el efecto de la interacción entre BlackList y Nube
+-   $(\alpha \delta)_{ik}$ es el efecto de la interacción entre BlackList y Solicitudes
+-   $(\beta \delta)_{jk}$ es el efecto de la interacción entre Nube y Solicitudes
+-   $\nu_l$ Es el efecto de la parcela. 
+
+Se ajusta un modelo mixto
+
+```{r}
+modp0=lmer(TiempoT~BL*Nube*Solicitudes+(1|Bloque),data = base)
+summ0=summary(modp0)
+```
+
+## Supuestos del modelo 
+
+Se asume el supuesto de independencia, se analiza entonces homocedasticidad y normalidad. Se oueden usar qqPlots, la prueba de Kolmogorov-Smirnov, el gráfico de predichos contra residuos y la prueba de levene.
+
+```{r}
+res0=summ0$residuals
+fit0=fitted(modp0)
+dffp=data.frame(res0,fit0)
+
+
+ggplot(data = dffp, aes(x = fit0, y = res0)) +
+  geom_point()
+
+
+leveneTest(res0~BL*Nube*Solicitudes,data = base)
+```
+
+Tanto en el gráfico de residuos contra predichos como en la prueba de Levene, no hay razón para creer que hay homocedasticidad. 
+
+```{r}
+ks.test(res0,"pnorm")
+
+residuos=as.data.frame(res0)
+res.stnd = scale(residuos$res0) # <- Residuos estandarizados. 
+ggplot(data = residuos, mapping = aes(sample = res.stnd )) + stat_qq_point() +                          stat_qq_line(color="blue") + stat_qq_band(fill=NA, color="blue") +
+      ylab("Residuos Estandarizados") + xlab("Norm Quantiles") + ggtitle("Normal QQ Plot")  +             labs(caption = "Grafico 1")+ theme_classic()+ ylim(-100, 100)
+```
+
+De igual forma, tanto en el gráfico como en la prueba de Kolmogorov se puede distinguir normalidad.
+
+En ambos gráficos hay un dato extremo.
+
+Vamos a intentar cambiar la respuesta por el promedio del tratamiento al que pertenecen 
+
+```{r}
+which(res0>20,)
+#tapply(base$TiempoT,list(base$BL,base$Nube,base$Solicitudes),mean) ##El promedio es 19 y estos tienen un valor mayor a 100
+baseA=base
+baseA[c(5325,5327),9]=c(19.18961,19.18961)
+
+
+
+```
+
+Podemos volver a hacer todo a ver qué tal nos va
+
+```{r}
+modp0=lmer(TiempoT~BL*Nube*Solicitudes+(1|Bloque),data = baseA)
+summ0=summary(modp0)
+
+# Homocedasticidad  
+
+res0=summ0$residuals
+fit0=fitted(modp0)
+dffp=data.frame(res0,fit0)
+
+
+ggplot(data = dffp, aes(x = fit0, y = res0)) +
+  geom_point()
+
+
+leveneTest(res0~BL*Nube*Solicitudes,data = baseA)
+
+# Normalidad 
+
+ks.test(res0,"pnorm")
+
+residuos=as.data.frame(res0)
+res.stnd = scale(residuos$res0) # <- Residuos estandarizados. 
+ggplot(data = residuos, mapping = aes(sample = res.stnd )) + stat_qq_point() +                          stat_qq_line(color="blue") + stat_qq_band(fill=NA, color="blue") +
+      ylab("Residuos Estandarizados") + xlab("Norm Quantiles") + ggtitle("Normal QQ Plot")  +             labs(caption = "Grafico 1")+ theme_classic()+ ylim(-100, 100)
+
+
+```
+No mejoró mucho 
+
+Por esta razón vamos a intentar a justar un modelo Generalizado mixto, a ver si eso nos ayuda a arreglar los supuestos.
+
+
+# Modelo generalizado Mixto 
+
+```{r}
+modp1=glmer(TiempoT~BL*Nube*Solicitudes+(1|Bloque),family = Gamma(link = "log"),data = base)
+summ=summary(modp1)
+summ
+```
+
+## Supuestos
+
+```{r}
+res1=summ$residuals
+fit1=fitted(modp1)
+dffp1=data.frame(res1,fit1)
+
+
+ggplot(data = dffp, aes(x = fit1, y = res1)) +
+  geom_point()
+
+
+leveneTest(res1~BL*Nube*Solicitudes,data = base)
+```
+
+
+```{r}
+ks.test(res1,"pnorm")
+
+residuos1=as.data.frame(res1)
+res.stnd1 = scale(residuos1$res1) # <- Residuos estandarizados. 
+ggplot(data = residuos1, mapping = aes(sample = res.stnd1 )) + stat_qq_point() +                          stat_qq_line(color="blue") + stat_qq_band(fill=NA, color="blue") +
+      ylab("Residuos Estandarizados") + xlab("Norm Quantiles") + ggtitle("Normal QQ Plot")  +             labs(caption = "Grafico 1")+ theme_classic()+ ylim(-100, 100)
+```
+
+Observamos que la normalidad se arregla un poco, pero la homocedasticidad sigue dando problemas. Puede que los valores extemos sigan afectando. 
+
+En este caso hay un punto en especifico que causa problemas, se va a cambiar por el promedio del tratamiento 
+
+```{r}
+which(res1>75);which(res.stnd1>75) ## Se trata del mismo 
+
+base[1465,]
+0.09379336  ## Es el promedio del tratamiento que es BL,Nube y 500 y Tarda 9!
+
+baseB=base
+baseB[1465,9]=0.09379336
+
+
+```
+
+Y podemos volver a hacer todo a ver como nos da. 
+
+
+```{r}
+modp1=glmer(TiempoT~BL*Nube*Solicitudes+(1|Bloque),family = Gamma(link = "log"),data = baseB)
+#modp2=glmer(TiempoT~BL*Nube+Solicitudes+BL*Solicitudes+Nube*Solicitudes+(1|Bloque),family = Gamma(link = "log"),data = baseB)
+
+# Homocedasticidad 
+
+res1=summ$residuals
+fit1=fitted(modp1)
+dffp1=data.frame(res1,fit1)
+
+
+ggplot(data = dffp, aes(x = fit1, y = res1)) +
+  geom_point()
+
+
+leveneTest(res1~BL*Nube*Solicitudes,data = base)
+
+# Normalidad 
+
+ks.test(res1,"pnorm")
+
+residuos1=as.data.frame(res1)
+res.stnd1 = scale(residuos1$res1) # <- Residuos estandarizados. 
+ggplot(data = residuos1, mapping = aes(sample = res.stnd1 )) + stat_qq_point() +                          stat_qq_line(color="blue") + stat_qq_band(fill=NA, color="blue") +
+      ylab("Residuos Estandarizados") + xlab("Norm Quantiles") + ggtitle("Normal QQ Plot")  + labs(caption = "Grafico 1")+ theme_classic()+ ylim(-100, 100)
+
+summary(modp1)
+
+```
+
+Se decide explorar alternativas no paramétricas. 
+
+# Bootstrap 
+
+```{r}
+
+
+# Función para calcular la estadística de interacción triple
+
+interaction_statistic <- function(data) {
+  fit <- aov(TiempoT ~ BL * Nube , data = data)
+  return(summary(fit)[[1]]["BL:Nube", "Mean Sq"])
+}
+
+
+# Calcular estadística observada
+observed_stat <- interaction_statistic(base);observed_stat
+
+# Realizar permutaciones
+n_permutations <- 100
+perm_stats <- numeric(n_permutations)
+for (k in 1:n_permutations) {
+  permuted_df <- base
+  permuted_df$TiempoT <- sample(base$TiempoT)
+  perm_stats[k] <- interaction_statistic(permuted_df)
+}
+# Calcular valor p
+p_value <- mean(perm_stats >= observed_stat)
+print(paste("Valor p:", p_value))
+
+baseB$orden= c(rep(1:(nrow(baseB)/4),each=2,times=2))
+
+modp1=glmer(TiempoT~BL*Nube*Solicitudes+(1|Bloque),family = Gamma(link = "log"),data = baseB)
+plot(baseB$orden,abs(summary(modp1)$res))
+
+length(unique(base$Bloque))
+
+
+table(base$Bloque)
+base$Bloque=as.factor(base$Bloque)
+base$trat=paste0(base$BL,base$Nube,base$Solicitudes)
+table(base$trat,base$Bloque)
+
+tt=unique(base$trat)
+tt
+table(tt)
+
+
+
+
+
+
+
+table(base$trat,base$Bloque)
+
+friedman.test(y=base$TiempoT,groups=base$trat,blocks=base$Bloque)
+
+drop1(modp1,test = "Chisq")
+modp1=glmer(TiempoT~BL*Nube+BL*Solicitudes+Nube*Solicitudes+(1|Bloque),family = Gamma(link = "log"),data = baseB)
+drop1(modp1,test = "Chisq")
+modp1=glmer(TiempoT~BL*Nube+Solicitudes+(1|Bloque),family = Gamma(link = "log"),data = baseB)
+drop1(modp1,test = "Chisq")
+```
+s
+
+
+
+
+
+
+
+
+
+
+
+
+
+Protocolo UDP Protocolo TCP
+
 

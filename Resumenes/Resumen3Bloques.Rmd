@@ -5,8 +5,10 @@ date: "2024-05-21"
 output:
   html_document:
     toc: yes
-    toc_float: yes
-    css: "tema1.css"
+    toc_float: true
+    css: tema1.css
+  pdf_document:
+    toc: true
 ---
 
 # Concepto 
@@ -130,7 +132,7 @@ Ya no es una ponderación directa de las varianzas por tratamiento, ya que prime
 - En este sentido entonces el CMRes es una mediad de variabilidad dentro de los tratamientos una vez eliminado el bloque. 
 
 $$
-SCRes=[\sum(n_i-1)*S_i^2]-SCBloque
+SCRes=[\sum(r-1)*S_i^2]-SCBloque
 $$
 
 Tenemos entonces:
@@ -333,7 +335,7 @@ Donde:
 - $\delta_k$ es el efecto de la parcela
 - $(\alpha \beta)_{ij}$ es el efecto de lainteracción entre los factores. 
 
-Y asumimos que: $\delta \sim N(0, \sigma^2_{\delta}) $
+Y asumimos que: $\delta \sim N(0, \sigma^2_{\delta})$
 
 
 Para el análisis de diseños de parcelas es bueno recordar que tenemos dos niveles, el nivel superior, con su propia unidad experimental y propio o propios factores. Y un nivel inferior con su propia unidad y propio o propios factores. Es difícil generalizar algo así, pero es bueno recordarlo siempre. 

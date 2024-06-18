@@ -1,0 +1,56 @@
+---
+title: "Simulación Experimentos 2024"
+author: "Daniel Sibaja Salazar"
+date: "2024-06-18"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+```
+
+
+El objetivo es simular un diseño experimental de 2 factores de dos niveles cada uno sin interacción, con la particularidad de que un tratamiento no va a tener distribución normal, mientras que los otros 3 sí. Además se generan dos situaciones, una con homocedasticidad y otro sin. Se quiere obtener empiricamente la potencia del ANOVA y la potencia de la prueba de Kruskal Wallis
+
+```{r}
+f1=as.factor(rep(c("A","B"),10,each=5))
+length(f1)
+f2=as.factor(rep(c("X","Y"),5,each=10))
+length(f2)
+table(f1,f2)
+base=data.frame("Factor1"=f1,"Factor2"=f2,"Tratamiento"=interaction(f1,f2))
+
+base=base %>% 
+  arrange(by=Tratamiento)
+
+base
+```
+
+Se genera la variable respuesta por tratamiento, en este caso con diferentes promedios y homocedasticidad.
+
+```{r}
+y1=rnorm(25,0,6^2)
+y2=rnorm(25,2,6^2)
+y3=rnorm(25,4,6^2)
+y4=rexp(25,1/6)
+
+y=c(y1,y2,y3,y4)
+
+base$Respuesta=y
+mean(y1)
+base
+```
+
+Se genera el modelo
+
+```{r}
+mod=lm(Respuesta~f1*f2,data = base)
+anova(mod)
+
+hist(base$Respuesta)
+boxplot(base$Respuesta~base$Tratamiento)
+```
+
+
+
+

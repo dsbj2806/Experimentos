@@ -1,0 +1,141 @@
+---
+title: "Resultados"
+author: "Daniel Sibaja Salazar"
+date: "2024-06-14"
+output: html_document
+---
+
+$$
+\mu_{ijk}=\mu+\alpha_i+\beta_j+\delta_k+(\alpha \beta)_{ij}+\nu_l
+$$ 
+Donde:
+
+-   $\mu$ es la media general
+-   $\alpha_i$ es el efecto del nivel i del Factor BlackList
+-   $\beta_j$ es el efecto del nivel j del Factor Nube
+-   $\delta_k$ es el efecto del nivel k del Factor Solicitudes
+-   $(\alpha \beta)_{ij}$ es el efecto de la interacción entre BlackList y Nube
+-   $(\alpha \delta)_{ik}$ es el efecto de la interacción entre BlackList y Solicitudes
+-   $(\beta \delta)_{jk}$ es el efecto de la interacción entre Nube y Solicitudes
+-   $\nu_l$ Es el efecto de la parcela. 
+
+
+```{r}
+library(readxl)
+library(lme4)
+library(dplyr)
+library(ggplot2)
+library(qqplotr)
+library(car)
+library(lattice)
+```
+
+```{r}
+load("base.Rdata")
+base2 <- base %>%
+  group_by(Bloque, BL,Nube, Solicitudes) %>%
+  summarise(promedio=mean(TiempoT),mediana=median(TiempoT))
+
+base2$Bloque=as.factor(base2$Bloque)
+m=tapply(base$TiempoT,list(base$BL,base$Nube,base$Solicitudes),mean);m
+m=tapply(base2$TiempoT,base2$Nube,mean);m
+
+
+
+
+```
+
+Modelo mixto lmer
+
+```{r}
+basemod=base2
+modp0=lmer(promedio~BL*Nube*Solicitudes+(1|Bloque),data = base2)
+drop1(modp0,test = "Chisq")
+modp1=lmer(promedio~BL*Nube+Nube*Solicitudes+BL*Solicitudes+(1|Bloque),data = base2)
+drop1(modp1,test = "Chisq")
+modp1=lmer(promedio~BL*Nube+Nube*Solicitudes+(1|Bloque),data = base2)
+drop1(modp1,test = "Chisq")
+modp1=lmer(promedio~BL*Nube+Solicitudes+(1|Bloque),data = base2)
+drop1(modp1,test = "Chisq")
+summ1=summary(modp1)
+
+res1=summ1$residuals
+fit1=fitted(modp1)
+dffp=data.frame(res1,fit1)
+plot(fit1,res1)
+
+leveneTest(promedio~BL*Nube*Solicitudes,data = base2)
+leveneTest(res1~BL*Nube*Solicitudes,data = base2)
+
+ks.test(res1,"pnorm")
+
+residuos=as.data.frame(res1)
+res.stnd = scale(residuos$res1) # <- Residuos estandarizados. 
+qqPlot(res1)
+qqPlot(res.stnd)
+```
+
+Aquí pasan varias cosas, una es que hay dos parcelas con valores muy distintos al resto. Se puede quitar esas parcelas o asignarle la mediana. Sería al tratamiento ML Local de N1002, y N107 ML Nube. La otra es que aunque con Levene no se rechaza la hipótesis, se ve en el gráfico de ajustados y residuos que no hay homoscedasticidad. 
+La opción es quitar esas dos parcelas y agregar pesos (de hecho si solo se quitan esas dos parcelas ya levene se rechaza, lo pueden revisar ustedes).
+
+```{r}
+base2=base2[-which(base2$Bloque=="N107"|base2$Bloque=="N1002"),]
+v=tapply(base2$promedio,list(base2$BL,base2$Nube,base2$Solicitudes),var);v
+
+pesos=data.frame(Solicitudes=rep(c(10,100,500),each=4),
+                 Nube=rep(rep(c("Nube","Local"),each=2),3),
+                 BL=rep(c("BL","ML"),6),w=as.vector(v))
+base3=merge(base2,pesos,by=c("BL","Nube","Solicitudes"))
+basemod=base3
+modp1=lmer(promedio~BL*Nube+Solicitudes+(1|Bloque),weights = 1/w,data = basemod)
+basemod
+drop1(modp1,test = "Chisq")
+summary(modp1)
+confint(modp1)
+summ1=summary(modp1)
+
+res1=summ1$residuals
+fit1=fitted(modp1)
+dffp=data.frame(res1,fit1)
+plot(fit1,res1)
+
+#Esto ya no se revisa porque se trabaja considerando heteroscedasticidad
+# leveneTest(promedio~BL*Nube*Solicitudes,data = basemod)
+# leveneTest(res1~BL*Nube*Solicitudes,data = basemod)
+
+ks.test(res1,"pnorm")
+
+residuos=as.data.frame(res1)
+res.stnd = scale(residuos$res1) # <- Residuos estandarizados. 
+qqPlot(res1)
+qqPlot(res.stnd)
+
+
+library(emmeans)
+contlmer=emmeans (modp1,  pairwise~ BL | Nube, adjust="bonferroni");contlmer
+
+# $contrasts
+# BL = BL:
+#  contrast     estimate       SE        df  t.ratio p.value
+#  Nube - Local  -0.1968 0.005724 461019585  -34.392  <.0001
+# 
+# BL = ML:
+#  contrast     estimate       SE        df  t.ratio p.value
+#  Nube - Local -73.2367 0.083794      6296 -874.004  <.0001
+confint(contlmer)$contrast
+
+
+
+```
+
+Este de arriba sería el modelo final, hay normalidad, no hay homoscedasticidad pero se está considerando la heteroscedasticidad al incluir pesos y se hace una mejor estimación del error estándar para las comparaciones. Hay que calcular cotas inferiores y concluir con respecto a una diferencia relevante, porque ambas son significativas.
+
+
+Hasta aquí mis cambios, lo que está abajo era lo que tenían antes
+
+
+
+
+
+
+
